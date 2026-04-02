@@ -71,7 +71,7 @@
     <message>
         <location filename="../qt/widgets/input.cc" line="407"/>
         <source>Detail</source>
-        <translation>세부사항</translation>
+        <translation>상세보기</translation>
     </message>
 </context>
 <context>
@@ -448,7 +448,7 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="127"/>
         <source>N/A</source>
-        <translation>N/A</translation>
+        <translation>해당 없음</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="128"/>
@@ -533,7 +533,7 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="195"/>
         <source>Refresh</source>
-        <translation>리프레시</translation>
+        <translation>새로고침</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="200"/>
@@ -578,12 +578,12 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="251"/>
         <source>Are you sure you want to refresh?</source>
-        <translation>리프레시 하시겠습니까?</translation>
+        <translation>새로고침 하시겠습니까?</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="261"/>
         <source>Disengage to Refresh</source>
-        <translation>리프레시 하려면 해제하세요</translation>
+        <translation>새로고침 하려면 해제하세요</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="267"/>
@@ -632,12 +632,12 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="711"/>
         <source>UIMenu</source>
-        <translation>UI메뉴</translation>
+        <translation>화면 설정</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="712"/>
         <source>Driving</source>
-        <translation>주행메뉴</translation>
+        <translation>주행</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="713"/>
@@ -647,7 +647,7 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="714"/>
         <source>Tuning</source>
-        <translation>튜닝메뉴</translation>
+        <translation>튜닝</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="721"/>
@@ -921,42 +921,42 @@
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="114"/>
         <source>Driver to Steer Angle</source>
-        <translation>Driver to Steer Angle</translation>
+        <translation>운전자-조향각 전환</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="115"/>
         <source>Improve the edge between the driver and the openpilot.</source>
-        <translation>Improve the edge between the driver and the openpilot.</translation>
+        <translation>운전자와 오픈파일럿 간의 조향 전환을 부드럽게 합니다.</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="124"/>
         <source>Driver to Steer</source>
-        <translation>Driver to Steer</translation>
+        <translation>운전자-조향 전환</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="125"/>
         <source>Controls smooth torque by the driver  From OpkrMaxSteeringAngle. def:0.002(5sec)</source>
-        <translation>Controls smooth torque by the driver  From OpkrMaxSteeringAngle. def:0.002(5sec)</translation>
+        <translation>최대조향각 초과 시 운전자 조작에 의한 부드러운 토크 제어. 기본값: 0.002(5초)</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="135"/>
         <source>Steer Angle</source>
-        <translation>Steer Angle</translation>
+        <translation>조향각</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="136"/>
         <source>Controls torque by steering angle From OpkrMaxSteeringAngle. def:0.001(10sec)</source>
-        <translation>Controls torque by steering angle From OpkrMaxSteeringAngle. def:0.001(10sec)</translation>
+        <translation>최대조향각 초과 시 조향각에 따른 토크 제어. 기본값: 0.001(10초)</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="145"/>
         <source>Normal driver to Steer</source>
-        <translation>Steer Angle</translation>
+        <translation>일반 운전자-조향 전환</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="146"/>
         <source>Controls torque limitation due to normal driver handle intervention. def:0.001(10sec)</source>
-        <translation>Controls torque limitation due to normal driver handle intervention. def:0.001(10sec)</translation>
+        <translation>일반적인 운전자 핸들 조작 시 토크 제한 제어. 기본값: 0.001(10초)</translation>
     </message>
     <message>
         <location filename="../qt/widgets/steerWidget.cc" line="227"/>
@@ -974,7 +974,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="24"/>
         <source>Lateral Control(Reboot)</source>
-        <translation>조향제어 방법(Reboot)</translation>
+        <translation>조향제어 방법(재부팅 필요)</translation>
     </message>
 </context>
 <context>
@@ -1264,7 +1264,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="581"/>
         <source>UNVIEW</source>
-        <translation>보기해제</translation>
+        <translation>보기 해제</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="584"/>
@@ -1274,7 +1274,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="585"/>
         <source>CALVIEW</source>
-        <translation>캘리보기</translation>
+        <translation>캘리 보기</translation>
     </message>
 </context>
 <context>
@@ -2050,7 +2050,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2920"/>
         <source>Sets the PathOffset value. (+value:Move left, -value:Move right)</source>
-        <translation>PathOffset 값을 설정합니다. (+값:왼쪽으로 이동, -value:오른쪽으로 이동)</translation>
+        <translation>PathOffset 값을 설정합니다. (+값:왼쪽으로 이동, -값:오른쪽으로 이동)</translation>
     </message>
 </context>
 <context>
@@ -2205,7 +2205,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3881"/>
         <source>LatControl(Reboot)</source>
-        <translation>조향제어방법(Reboot)</translation>
+        <translation>조향제어 방법(재부팅 필요)</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3881"/>
@@ -2653,7 +2653,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="5935"/>
         <source>API Server</source>
-        <translation>서버 API</translation>
+        <translation>API 서버</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="5935"/>
@@ -2741,7 +2741,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="6120"/>
         <source>Set the Mapbox sytle to Comma/OPKR/User&apos;s</source>
-        <translation>Mapbox 시스템을 Comma/OPKR/사용자로 설정</translation>
+        <translation>Mapbox 스타일을 Comma/OPKR/사용자로 설정</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="6151"/>
@@ -3226,7 +3226,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="147"/>
         <source>Use Auto Resume at Stop</source>
-        <translation>정지상태에서 자동Resume 사용</translation>
+        <translation>정지 상태에서 자동 재개 사용</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.h" line="147"/>
@@ -3484,7 +3484,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="424"/>
         <source>Use Smart Prebuilt</source>
-        <translation>스마트 프리필트 사용</translation>
+        <translation>스마트 프리빌트 사용</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.h" line="424"/>
@@ -3861,7 +3861,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="784"/>
         <source>This is just in case you are using other panda setting.(delta updown, maxsteer, rtdelta and etc).</source>
-        <translation>판다 설정을 기본값에서 높여서 쓸경우를 대비해서입니다. (델타 업다운, MAX스티어, RT델다 등)</translation>
+        <translation>판다 설정을 기본값에서 높여서 쓸경우를 대비해서입니다. (델타 업다운, MAX스티어, RT델타 등)</translation>
     </message>
 </context>
 <context>

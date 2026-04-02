@@ -31,7 +31,7 @@ CLateralControlGroup::CLateralControlGroup() : CGroupWidget( tr("Lateral Control
 
 
   // label
-  method_label = new QPushButton("method"); // .setAlignment(Qt::AlignVCenter|Qt::AlignHCenter);
+  method_label = new QPushButton(tr("method")); // .setAlignment(Qt::AlignVCenter|Qt::AlignHCenter);
   method_label->setStyleSheet(R"(
     padding: 0;
     border-radius: 50px;
