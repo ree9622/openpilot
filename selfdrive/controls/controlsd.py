@@ -184,6 +184,8 @@ class Controls:
     self.mismatch_counter = 0
     self.cruise_mismatch_counter = 0
     self.can_rcv_error_counter = 0
+    self.can_error_grace_timer = 0  # startup grace period for CAN stabilization (frames, 100Hz)
+    self.can_error_grace_period = 500  # 5 seconds grace after startup
     self.last_blinker_frame = 0
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
@@ -351,10 +353,18 @@ class Controls:
                                                       LaneChangeState.laneChangeFinishing):
         self.events.add(EventName.laneChange)
 
-    if self.can_rcv_error or not CS.canValid and self.ignore_can_error_on_isg and CS.vEgo > 1:
-      self.events.add(EventName.canError)
-    elif self.can_rcv_error or not CS.canValid and not self.ignore_can_error_on_isg:
-      self.events.add(EventName.canError)
+    # Startup grace period: skip canError for first 5 seconds to allow CAN bus stabilization
+    can_has_error = self.can_rcv_error or not CS.canValid
+    if self.can_error_grace_timer < self.can_error_grace_period:
+      self.can_error_grace_timer += 1
+      if can_has_error and self.can_error_grace_timer % 100 == 0:
+        print("CAN grace period: can_rcv_error={} canValid={} timer={}/{}".format(
+          self.can_rcv_error, CS.canValid, self.can_error_grace_timer, self.can_error_grace_period))
+    elif can_has_error:
+      if self.ignore_can_error_on_isg and CS.vEgo > 1:
+        self.events.add(EventName.canError)
+      elif not self.ignore_can_error_on_isg:
+        self.events.add(EventName.canError)
 
     for i, pandaState in enumerate(self.sm['pandaStates']):
       # All pandas must match the list of safetyConfigs, and if outside this list, must be silent or noOutput

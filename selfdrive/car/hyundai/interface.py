@@ -288,7 +288,9 @@ class CarInterface(CarInterfaceBase):
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     if not self.cp.can_valid or not self.cp2.can_valid or not self.cp_cam.can_valid:
-      print('cp={}  cp2={}  cp_cam={}'.format(bool(self.cp.can_valid), bool(self.cp2.can_valid), bool(self.cp_cam.can_valid)))
+      print('CAN_INVALID cp={} cp2={} cp_cam={} vEgo={:.1f} cruiseActive={}'.format(
+        bool(self.cp.can_valid), bool(self.cp2.can_valid), bool(self.cp_cam.can_valid),
+        ret.vEgo, ret.cruiseState.available))
 
 
     if self.CP.pcmCruise and not self.CC.scc_live:
