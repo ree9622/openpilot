@@ -1585,7 +1585,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="1315"/>
         <source>Sets the minimum battery charge value.</source>
-        <translation>최소 배터리 충전 값을 설정합니다.</translation>
+        <translation>배터리 충전을 시작할 최소 용량(%)을 설정합니다. 배터리 수명 보호를 위해 최대값보다 낮게 설정하십시오.</translation>
     </message>
 </context>
 <context>
@@ -1598,7 +1598,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="1374"/>
         <source>Sets the maximum battery charge value.</source>
-        <translation>최대 배터리 충전 값을 설정합니다.</translation>
+        <translation>배터리 충전을 중단할 최대 용량(%)을 설정합니다. 배터리 장기 수명을 위해 100% 미만으로 설정하는 것을 권장합니다.</translation>
     </message>
 </context>
 <context>
@@ -1944,7 +1944,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2489"/>
         <source>Set the automatic engage speed.</source>
-        <translation>자동 인게이지 속도를 설정합니다.</translation>
+        <translation>오픈파일럿이 자동으로 활성화될 때 필요한 최소 차량 속도(km/h)를 설정합니다. 너무 낮게 설정하면 정차 중에 갑자기 활성화될 수 있으니 주의하십시오.</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2545"/>
@@ -2197,7 +2197,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3821"/>
         <source>Adjust the SteerThreshold value.</source>
-        <translation>SteerThreshold를 조정합니다.</translation>
+        <translation>조향 토크 임계값을 조정합니다. 운전자 개입을 감지하는 최소 토크 수준입니다. 값이 낮으면 가벼운 터치에도 개입으로 판단합니다.</translation>
     </message>
 </context>
 <context>
@@ -3296,7 +3296,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="207"/>
         <source>It uses the battery charge control function.</source>
-        <translation>배터리 충전 제어 기능을 사용합니다.</translation>
+        <translation>장치 배터리의 충전 범위를 제어합니다. 최소/최대 충전 설정값에 따라 배터리를 지정된 범위 내에서만 충전하여 배터리 수명을 연장합니다.</translation>
     </message>
 </context>
 <context>
@@ -3309,7 +3309,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="219"/>
         <source>If a car is detected in the rear, it will be displayed on the screen.</source>
-        <translation>후방에서 차량이 감지되면 화면에 표시됩니다.</translation>
+        <translation>차량의 BSM(사각지대 감지) 센서 데이터를 오픈파일럿 주행 화면에 표시합니다. 후측방에 차량이 감지되면 화면 좌우에 경고 아이콘이 나타납니다.</translation>
     </message>
 </context>
 <context>
@@ -3692,7 +3692,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="628"/>
         <source>This enables OSM speedlimit.</source>
-        <translation>OSM 속도 제한을 활성화합니다.</translation>
+        <translation>OSM(OpenStreetMap) 지도의 제한속도 데이터를 기반으로 크루즈 속도를 자동 제한합니다. OSM 데이터가 부정확한 구간에서는 불필요한 감속이 발생할 수 있습니다.</translation>
     </message>
 </context>
 <context>
@@ -3887,7 +3887,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="808"/>
         <source>How to use: https://github.com/commaai/openpilot/tree/master/tools/joystick</source>
-        <translation>사용방법: https://github.com/commaai/openpilot/tree/master/tools/joystick</translation>
+        <translation>[개발자 전용] 조이스틱으로 오픈파일럿을 직접 제어하는 디버그 모드입니다. 일반 주행에는 사용하지 마십시오. 사용법: https://github.com/commaai/openpilot/tree/master/tools/joystick</translation>
     </message>
 </context>
 <context>
@@ -3926,7 +3926,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="844"/>
         <source>Turn on, if you have no smartmdps or no mdps harness to avoid sending can under certain speed that is not able to use lane keeping.</source>
-        <translation>스마트 mdps가 없거나 mdps 하네스가 없는 경우 차선 유지를 사용할 수 없는 특정 속도 미만에서 캔신호를 보내지 않도록 이 기능을 켜십시오.</translation>
+        <translation>차량에 스마트 MDPS(전동식 파워스티어링)가 없거나 MDPS 하네스(조향 제어 연결 장치)가 없는 경우 켜십시오. 저속 구간에서 잘못된 CAN 신호 전송을 방지합니다. 해당 없는 차량에서 켜면 정상적인 조향 보조가 방해될 수 있습니다.</translation>
     </message>
 </context>
 <context>
