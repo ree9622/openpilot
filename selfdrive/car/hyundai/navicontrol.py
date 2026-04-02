@@ -11,7 +11,6 @@ from random import randint, randrange
 from common.params import Params
 
 import common.log as trace1
-import common.MoveAvg as mvAvg
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 
@@ -26,8 +25,6 @@ class NaviControl():
     self.set_point = 0
     self.wait_timer2 = 0
     self.wait_timer3 = 0
-
-    self.moveAvg = mvAvg.MoveAvg()
 
     self.gasPressed_old = 0
 

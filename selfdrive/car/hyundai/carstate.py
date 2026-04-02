@@ -11,8 +11,6 @@ from common.params import Params
 
 GearShifter = car.CarState.GearShifter
 
-FCA_OPT = Params().get_bool('RadarDisable')
-
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
@@ -39,11 +37,12 @@ class CarState(CarStateBase):
     self.prev_cruise_buttons = 0
     self.prev_gap_button = 0
     
-    self.steer_anglecorrection = float(int(Params().get("OpkrSteerAngleCorrection", encoding="utf8")) * 0.1)
-    self.gear_correction = Params().get_bool("JustDoGearD")
-    self.fca11_message = Params().get_bool("FCA11Message")
-    self.rd_conf = Params().get_bool("RadarDisable")
-    self.set_spd_five = Params().get_bool("SetSpeedFive")
+    params = Params()
+    self.steer_anglecorrection = float(int(params.get("OpkrSteerAngleCorrection", encoding="utf8")) * 0.1)
+    self.gear_correction = params.get_bool("JustDoGearD")
+    self.fca11_message = params.get_bool("FCA11Message")
+    self.rd_conf = params.get_bool("RadarDisable")
+    self.set_spd_five = params.get_bool("SetSpeedFive")
     self.brake_check = False
     self.cancel_check = False
     
@@ -72,7 +71,7 @@ class CarState(CarStateBase):
     self.prev_cruise_btn = False
     self.acc_active = False
     self.cruise_set_speed_kph = 0
-    self.cruise_set_mode = int(Params().get("CruiseStatemodeSelInit", encoding="utf8"))
+    self.cruise_set_mode = int(params.get("CruiseStatemodeSelInit", encoding="utf8"))
     self.gasPressed = False
 
 

@@ -9,12 +9,15 @@ from common.params import Params
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 
-if int(Params().get("OpkrLaneChangeSpeed", encoding="utf8")) < 1:
+_params = Params()
+_lc_speed = int(_params.get("OpkrLaneChangeSpeed", encoding="utf8"))
+if _lc_speed < 1:
   LANE_CHANGE_SPEED_MIN = -1
-elif Params().get_bool("IsMetric"):
-  LANE_CHANGE_SPEED_MIN = float(int(Params().get("OpkrLaneChangeSpeed", encoding="utf8")) * CV.KPH_TO_MS)
+elif _params.get_bool("IsMetric"):
+  LANE_CHANGE_SPEED_MIN = float(_lc_speed * CV.KPH_TO_MS)
 else:
-  LANE_CHANGE_SPEED_MIN = float(int(Params().get("OpkrLaneChangeSpeed", encoding="utf8")) * CV.MPH_TO_MS)
+  LANE_CHANGE_SPEED_MIN = float(_lc_speed * CV.MPH_TO_MS)
+del _params, _lc_speed
 LANE_CHANGE_TIME_MAX = 10.
 
 DESIRES = {
@@ -60,7 +63,7 @@ class DesireHelper:
      int(lc_params.get("LCTimingFactor80", encoding="utf8")) * 0.01, int(lc_params.get("LCTimingFactor110", encoding="utf8")) * 0.01]
     self.lane_change_adjust_vel = [30*CV.KPH_TO_MS, 60*CV.KPH_TO_MS, 80*CV.KPH_TO_MS, 110*CV.KPH_TO_MS]
     self.lane_change_adjust_new = 2
-    self.lane_change_adjust_enable = Params().get_bool("LCTimingFactorEnable")
+    self.lane_change_adjust_enable = lc_params.get_bool("LCTimingFactorEnable")
 
     self.output_scale = 0.0
     self.ready_to_change = False
