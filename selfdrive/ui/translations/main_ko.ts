@@ -903,7 +903,7 @@
     <message>
         <location filename="../qt/offroad/settings.cc" line="111"/>
         <source>openpilot will disable the car&apos;s radar and will take over control of gas and brakes. Warning: this disables AEB!</source>
-        <translation>오픈파일럿은 차량의 레이더를 비활성화하고 가속과 브레이크의 제어에 관여합니다. 경고: AEB가 비활성화 됩니다!</translation>
+        <translation>오픈파일럿이 차량의 레이더를 비활성화하고 가속 및 제동을 직접 제어합니다. ⚠️ 경고: 이 설정을 켜면 차량의 자동긴급제동(AEB) 기능이 비활성화됩니다! 설정 변경은 차량 시동을 끈 후 적용됩니다.</translation>
     </message>
 </context>
 <context>
@@ -2037,7 +2037,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2857"/>
         <source>Sets the CameraOffset value. (+value:Move Left, -value:Move Right)</source>
-        <translation>CameraOffset 값을 설정합니다. (+값:왼쪽으로 이동, -값:오른쪽으로 이동)</translation>
+        <translation>카메라가 차선 중앙을 인식하는 기준점을 보정합니다. +값은 왼쪽, -값은 오른쪽으로 이동. 카메라 장착 위치 편차 보정용. 과도한 값은 차선 이탈을 유발할 수 있습니다.</translation>
     </message>
 </context>
 <context>
@@ -2050,7 +2050,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2920"/>
         <source>Sets the PathOffset value. (+value:Move left, -value:Move right)</source>
-        <translation>PathOffset 값을 설정합니다. (+값:왼쪽으로 이동, -값:오른쪽으로 이동)</translation>
+        <translation>주행 목표 경로를 차선 내에서 좌우로 이동합니다. +값은 왼쪽, -값은 오른쪽. 차량이 한쪽으로 치우치는 경우 조정하십시오. CameraOffset은 인식 보정, PathOffset은 주행 위치 보정입니다.</translation>
     </message>
 </context>
 <context>
@@ -2063,7 +2063,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="2983"/>
         <source>Sets the SteerRatio default value.</source>
-        <translation>SteerRatio 기본값을 설정합니다.</translation>
+        <translation>조향비(SteerRatio) 기본값을 설정합니다. 핸들 회전 각도 대비 실제 바퀴 회전 비율입니다. 값이 낮으면 조향이 과민하고, 높으면 둔감합니다.</translation>
     </message>
 </context>
 <context>
@@ -2089,7 +2089,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3179"/>
         <source>Adjust the SteerActuatorDelay value.</source>
-        <translation>SteerActuatorDelay 값을 조정합니다.</translation>
+        <translation>조향 명령 후 실제 핸들이 반응하기까지의 지연 시간(초)을 설정합니다. 값이 작으면 조향이 과민반응하고, 크면 반응이 느려집니다.</translation>
     </message>
 </context>
 <context>
@@ -2102,7 +2102,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3305"/>
         <source>Adjust the SteerLimitTimer value.</source>
-        <translation>SteerLimitTimer 값을 조정합니다.</translation>
+        <translation>최대 조향 토크 지속 허용 시간(초)을 설정합니다. 이 시간을 초과하면 조향 오류로 판단합니다. 너무 높게 설정하면 실제 이상 상황에서 경고가 늦어질 수 있습니다.</translation>
     </message>
 </context>
 <context>
@@ -2115,7 +2115,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3368"/>
         <source>Adjust the TireStiffnessFactor value.</source>
-        <translation>TireStiffnessFactor 값을 조정합니다.</translation>
+        <translation>타이어 횡방향 강성 계수를 조정합니다. 값이 높으면 더 민감한 조향 반응, 낮으면 더 완만한 조향 반응을 나타냅니다. 기본값 사용을 권장합니다.</translation>
     </message>
 </context>
 <context>
@@ -2210,7 +2210,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3881"/>
         <source>Set the steering control method(PID/INDI/LQR/TORQUE). Reboot Required.</source>
-        <translation>조향제어방법(PID/INDI/LQR/TORQUE)을 설정합니다. 재부팅이 필요합니다.</translation>
+        <translation>조향 제어 알고리즘을 선택합니다. 변경 후 재부팅 필요. PID: 전통적 비례-적분-미분 제어, INDI: 빠른 반응 차량용, LQR: 고속 안정성, TORQUE: 토크 기반(최신 현대/기아 권장)</translation>
     </message>
 </context>
 <context>
@@ -2223,7 +2223,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="3952"/>
         <source>Adjust Kp</source>
-        <translation>Kp 조정</translation>
+        <translation>비례 게인(Kp) 조정. 값이 높으면 조향 반응이 즉각적이나 진동 발생 가능, 낮으면 반응이 느림</translation>
     </message>
 </context>
 <context>
@@ -2236,7 +2236,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="4015"/>
         <source>Adjust Ki</source>
-        <translation>Ki 조정</translation>
+        <translation>적분 게인(Ki) 조정. 지속적인 조향 오차를 보정. 너무 높으면 좌우 진동 발생 가능</translation>
     </message>
 </context>
 <context>
@@ -2249,7 +2249,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="4078"/>
         <source>Adjust Kd</source>
-        <translation>Kd 조정</translation>
+        <translation>미분 게인(Kd) 조정. 급격한 조향 변화를 억제. 너무 높으면 노이즈에 과민반응</translation>
     </message>
 </context>
 <context>
@@ -2262,7 +2262,7 @@
     <message>
         <location filename="../qt/widgets/opkr.cc" line="4141"/>
         <source>Adjust Kf</source>
-        <translation>Kf 조정</translation>
+        <translation>피드포워드 게인(Kf) 조정. 곡선 구간의 예측적 조향에 사용. 커브 초입에서 조향이 느리면 값을 높이십시오</translation>
     </message>
 </context>
 <context>
@@ -3231,7 +3231,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="147"/>
         <source>It uses the automatic departure function when stopping while using SCC.</source>
-        <translation>SCC 사용 중 정지 시 자동 출발 기능을 사용합니다.</translation>
+        <translation>SCC(스마트 크루즈 컨트롤) 사용 중 정지 상태에서 선행차가 출발하면 자동으로 따라 출발합니다. ⚠️ 주의: 운전자 페달 조작 없이 차량이 자동으로 전진합니다. 항상 전방 상황을 주시하십시오.</translation>
     </message>
 </context>
 <context>
@@ -3283,7 +3283,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="195"/>
         <source>If the brake is applied while using the SCC and the standby mode is changed (CANCEL is not applicable), set it back to the previous speed when the brake pedal is released/accelerated pedal is operated. It operates when the cruise speed is set and the vehicle speed is more than 30 km/h or the car in front is recognized.</source>
-        <translation>SCC를 사용하는 동안 브레이크를 밟고 대기 모드를 변경한 경우(CANCEL버튼으로 크루즈 취소한 경우는 실행되지 않음) 브레이크 페달을 놓거나 가속 페달을 작동할 때 SCC를 재 설정합니다. 차량 속도가 30km/h를 넘거나 앞차가 인식될 때 작동합니다.</translation>
+        <translation>SCC 사용 중 브레이크를 밟아 대기 모드로 전환된 경우(CANCEL 버튼 해제는 제외), 브레이크 해제 또는 가속페달 조작 시 이전 설정 속도로 자동 재개합니다. 속도 30km/h 초과 또는 선행차 인식 시에만 작동합니다. ⚠️ 주의: 운전자 개입 없이 차량이 자동으로 가속될 수 있습니다.</translation>
     </message>
 </context>
 <context>
@@ -3322,7 +3322,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="236"/>
         <source>OP activates with Main Cruise Switch, AutoRES while driving, Seperate Lat/Long and etc</source>
-        <translation>오픈파일럿이 메인 크루즈 스위치를 이용하여 활성화하고 주행 중 AutoRES, Lat/Long 분리 기능 등을 사용시에는 켜야합니다.</translation>
+        <translation>UFC(User-Friendly Control) 모드를 활성화합니다. 크루즈 메인 스위치로 오픈파일럿을 켜고 끌 수 있으며, 자동RES(자동 재개), 조향(Lat)과 속도제어(Long) 분리 작동 등의 기능이 포함됩니다. 자동RES 또는 조향/속도 분리 기능을 사용하려면 반드시 켜야 합니다.</translation>
     </message>
 </context>
 <context>
@@ -3348,7 +3348,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="260"/>
         <source>Turn on the function when a steering error occurs in the vehicle and the open pilot cannot be executed (some vehicles only). Do not turn on the function if it occurs in a normal error environment while driving.</source>
-        <translation>차량에서 스티어링 오류가 발생하여 오픈파일럿을 실행할 수 없는 경우(일부 차량만 해당) 이 기능을 켜십시오. 운전 중 정상적인 에러 환경에서 발생한다면 이 기능을 켜지 마십시오.</translation>
+        <translation>특정 차량에서 스티어링 오류로 인해 오픈파일럿이 실행되지 않을 때만 사용하십시오(일부 차량 한정). ⚠️ 경고: 실제 스티어링 하드웨어 오류를 무시하게 될 수 있으므로, 고질적인 오류가 아닌 경우 절대 켜지 마십시오.</translation>
     </message>
 </context>
 <context>
@@ -3640,7 +3640,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="580"/>
         <source>Activate E2E Long. It may work unexpectedly. Be careful.</source>
-        <translation>E2E 롱을 활성화합니다. 예기치 않게 작동할 수 있습니다. 조심하세요.</translation>
+        <translation>E2E(End-to-End) 딥러닝 모델 기반 종방향 제어를 활성화합니다. 모델이 직접 가속·제동을 결정합니다. ⚠️ 경고: 예측하지 못한 급감속 또는 급가속이 발생할 수 있습니다. 충분히 테스트한 후 사용하고, 항상 즉시 개입할 수 있도록 준비하십시오.</translation>
     </message>
 </context>
 <context>
@@ -3653,7 +3653,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="592"/>
         <source>Openpilot tries to stop at stop sign depends on Model.</source>
-        <translation>오픈파일럿은 모델에 따라 정지 신호에서 정지를 시도할 수 있습니다.</translation>
+        <translation>오픈파일럿이 카메라 모델을 통해 정지 표지판 감지 시 자동 정지를 시도합니다. ⚠️ 주의: 모든 정지 표지판을 100% 인식하지 못할 수 있습니다. 반드시 운전자가 직접 확인하고 필요시 제동하십시오.</translation>
     </message>
 </context>
 <context>
@@ -3679,7 +3679,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="616"/>
         <source>This enables OSM.</source>
-        <translation>OSM을 활성화합니다.</translation>
+        <translation>OSM(OpenStreetMap) 오픈소스 지도 데이터를 사용합니다. 커브 구간 속도 제한 및 도로 제한속도 데이터를 오픈파일럿에 제공합니다.</translation>
     </message>
 </context>
 <context>
@@ -3718,7 +3718,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="652"/>
         <source>Turn this on, if you want to use Stock LKAS at OP disengaged status. Seems this related to cluster error when OP active because Stock CAN messages over PANDA or not.</source>
-        <translation>순정 LKAS를 오픈파일럿 해제 상태에서 사용하려면 이 스위치를 켜십시오. 순정 CAN 메시지가 판다를 통해 전송되는지 여부에 따라 오픈파일럿 활성 시 클러스터 오류와 관련이 있는 것으로 보입니다.</translation>
+        <translation>오픈파일럿이 해제(Disengage) 상태일 때 차량 순정 LKAS(차선유지보조)가 정상 작동하도록 합니다. 오픈파일럿 활성화 중 계기판에 경고등이 켜지는 경우 이 기능을 켜보십시오. 일부 차량에서는 충돌이 발생할 수 있으니 동작을 확인하며 사용하십시오.</translation>
     </message>
 </context>
 <context>
@@ -3783,7 +3783,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="712"/>
         <source>This is pre-requisite for LongControl of HKG. It seems that this affects AEB. So do not use this if you have any concern.</source>
-        <translation>이것은 HKG의 Long Control을 위한 전제 조건입니다. 이것은 AEB에 영향을 미치는 것 같습니다. 해당 부분이 우려가 된다면 이것을 사용하지 마세요.</translation>
+        <translation>현대/기아/제네시스(HKG) 차량의 오픈파일럿 종방향 제어(Long Control) 활성화를 위한 필수 조건입니다. ⚠️ 경고: 레이더를 비활성화하면 차량의 자동긴급제동(AEB) 기능이 작동하지 않을 수 있습니다. 안전에 우려가 있다면 사용하지 마십시오.</translation>
     </message>
 </context>
 <context>
@@ -3796,7 +3796,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="724"/>
         <source>This is for C2 users with Comma Power.</source>
-        <translation>콤마 파워를 가진 C2 사용자를 위한 것입니다.</translation>
+        <translation>Comma Two(C2) 장치에 Comma Power(OBD2 전원 모듈)를 사용하는 경우에만 켜십시오. 전원 관리를 최적화합니다. 해당 하드웨어가 아니면 켜지 마십시오.</translation>
     </message>
 </context>
 <context>
@@ -3809,7 +3809,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="736"/>
         <source>to use Custom TR not 1.45(comma default).</source>
-        <translation>1.45(콤마 기본값)가 아닌 사용자 지정 TR을 사용합니다.</translation>
+        <translation>차간거리 시간 비율 TR(Time Ratio, 앞차까지의 충돌 예상 시간, 초 단위)을 직접 설정합니다. 콤마 기본값 1.45초 대신 갭별 TR 값을 설정할 수 있습니다. TR이 클수록 앞차와의 간격이 넓어집니다.</translation>
     </message>
 </context>
 <context>
@@ -3965,7 +3965,7 @@
     <message>
         <location filename="../qt/widgets/opkr.h" line="880"/>
         <source>Seems regarding process stability. This uses resource.</source>
-        <translation>장치 프로세스 안정성에 관한 것 같습니다. 이 기능은 리소스를 사용합니다.</translation>
+        <translation>오픈파일럿 프로세스 안정성을 높이기 위한 RTShield 보조 프로세스를 실행합니다. CPU/메모리를 일부 사용합니다. 프로세스 재시작이 잦거나 불안정한 경우 켜보십시오.</translation>
     </message>
 </context>
 <context>
