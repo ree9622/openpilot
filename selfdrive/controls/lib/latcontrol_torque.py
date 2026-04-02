@@ -8,7 +8,6 @@ from selfdrive.controls.lib.drive_helpers import apply_deadzone
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
 
 from common.params import Params
-from decimal import Decimal
 
 # At higher speeds (25+mph) we can assume:
 # Lateral acceleration achieved by a specific car correlates to
@@ -49,13 +48,13 @@ class LatControlTorque(LatControl):
   def live_tune(self, CP):
     self.mpc_frame += 1
     if self.mpc_frame % 300 == 0:
-      self.max_lat_accel = float(Decimal(self.params.get("TorqueMaxLatAccel", encoding="utf8")) * Decimal('0.1'))
-      self.kp = float(Decimal(self.params.get("TorqueKp", encoding="utf8")) * Decimal('0.1')) / self.max_lat_accel
-      self.kf = float(Decimal(self.params.get("TorqueKf", encoding="utf8")) * Decimal('0.1')) / self.max_lat_accel
-      self.ki = float(Decimal(self.params.get("TorqueKi", encoding="utf8")) * Decimal('0.1')) / self.max_lat_accel
-      self.friction = float(Decimal(self.params.get("TorqueFriction", encoding="utf8")) * Decimal('0.001'))
+      self.max_lat_accel = int(self.params.get("TorqueMaxLatAccel", encoding="utf8")) * 0.1
+      self.kp = int(self.params.get("TorqueKp", encoding="utf8")) * 0.1 / self.max_lat_accel
+      self.kf = int(self.params.get("TorqueKf", encoding="utf8")) * 0.1 / self.max_lat_accel
+      self.ki = int(self.params.get("TorqueKi", encoding="utf8")) * 0.1 / self.max_lat_accel
+      self.friction = int(self.params.get("TorqueFriction", encoding="utf8")) * 0.001
       self.use_steering_angle = self.params.get_bool('TorqueUseAngle')
-      self.steering_angle_deadzone_deg = float(Decimal(self.params.get("TorqueAngDeadZone", encoding="utf8")) * Decimal('0.1'))
+      self.steering_angle_deadzone_deg = int(self.params.get("TorqueAngDeadZone", encoding="utf8")) * 0.1
       self.pid = PIDController(self.kp, self.ki,
                               k_f=self.kf, pos_limit=1.0, neg_limit=-1.0)
         

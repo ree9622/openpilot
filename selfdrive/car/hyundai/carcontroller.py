@@ -18,7 +18,6 @@ from common.params import Params
 import common.log as trace1
 import common.CTime1000 as tm
 from random import randint
-from decimal import Decimal
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -111,7 +110,7 @@ class CarController():
     self.auto_res_delay = int(self.params.get("AutoRESDelay", encoding="utf8")) * 100
     self.auto_res_delay_timer = 0
     self.stopped = False
-    self.stoppingdist = float(Decimal(self.params.get("StoppingDist", encoding="utf8"))*Decimal('0.1'))
+    self.stoppingdist = int(self.params.get("StoppingDist", encoding="utf8")) * 0.1
 
     self.longcontrol = CP.openpilotLongitudinalControl
     #self.scc_live is true because CP.radarOffCan is False
@@ -188,8 +187,8 @@ class CarController():
     self.user_specific_feature = int(self.params.get("UserSpecificFeature", encoding="utf8"))
 
     self.gap_by_spd_on = self.params.get_bool("CruiseGapBySpdOn")
-    self.gap_by_spd_spd = list(map(int, Params().get("CruiseGapBySpdSpd", encoding="utf8").split(',')))
-    self.gap_by_spd_gap = list(map(int, Params().get("CruiseGapBySpdGap", encoding="utf8").split(',')))
+    self.gap_by_spd_spd = list(map(int, self.params.get("CruiseGapBySpdSpd", encoding="utf8").split(',')))
+    self.gap_by_spd_gap = list(map(int, self.params.get("CruiseGapBySpdGap", encoding="utf8").split(',')))
     self.gap_by_spd_on_buffer1 = 0
     self.gap_by_spd_on_buffer2 = 0
     self.gap_by_spd_on_buffer3 = 0
@@ -828,8 +827,8 @@ class CarController():
           else:
             self.e2e_standstill_timer = 0
             self.e2e_standstill_timer_buf = 0
-        except:
-          pass
+        except Exception as e:
+          print("e2e_standstill error: {}".format(e))
 
     if CS.brakeHold and not self.autohold_popup_switch:
       self.autohold_popup_timer = 100
@@ -1203,21 +1202,29 @@ class CarController():
       # self.gap_by_spd_on = self.params.get_bool("CruiseGapBySpdOn")
       if self.params.get_bool("OpkrLiveTunePanelEnable"):
         if CS.CP.lateralTuning.which() == 'pid':
-          self.str_log2 = 'T={:0.2f}/{:0.3f}/{:0.1f}/{:0.5f}'.format(float(Decimal(self.params.get("PidKp", encoding="utf8"))*Decimal('0.01')), \
-           float(Decimal(self.params.get("PidKi", encoding="utf8"))*Decimal('0.001')), float(Decimal(self.params.get("PidKd", encoding="utf8"))*Decimal('0.01')), \
-           float(Decimal(self.params.get("PidKf", encoding="utf8"))*Decimal('0.00001')))
+          self.str_log2 = 'T={:0.2f}/{:0.3f}/{:0.1f}/{:0.5f}'.format(
+           int(self.params.get("PidKp", encoding="utf8")) * 0.01,
+           int(self.params.get("PidKi", encoding="utf8")) * 0.001,
+           int(self.params.get("PidKd", encoding="utf8")) * 0.01,
+           int(self.params.get("PidKf", encoding="utf8")) * 0.00001)
         elif CS.CP.lateralTuning.which() == 'indi':
-          self.str_log2 = 'T={:03.1f}/{:03.1f}/{:03.1f}/{:03.1f}'.format(float(Decimal(self.params.get("InnerLoopGain", encoding="utf8"))*Decimal('0.1')), \
-           float(Decimal(self.params.get("OuterLoopGain", encoding="utf8"))*Decimal('0.1')), float(Decimal(self.params.get("TimeConstant", encoding="utf8"))*Decimal('0.1')), \
-           float(Decimal(self.params.get("ActuatorEffectiveness", encoding="utf8"))*Decimal('0.1')))
+          self.str_log2 = 'T={:03.1f}/{:03.1f}/{:03.1f}/{:03.1f}'.format(
+           int(self.params.get("InnerLoopGain", encoding="utf8")) * 0.1,
+           int(self.params.get("OuterLoopGain", encoding="utf8")) * 0.1,
+           int(self.params.get("TimeConstant", encoding="utf8")) * 0.1,
+           int(self.params.get("ActuatorEffectiveness", encoding="utf8")) * 0.1)
         elif CS.CP.lateralTuning.which() == 'lqr':
-          self.str_log2 = 'T={:04.0f}/{:05.3f}/{:07.5f}'.format(float(Decimal(self.params.get("Scale", encoding="utf8"))*Decimal('1.0')), \
-           float(Decimal(self.params.get("LqrKi", encoding="utf8"))*Decimal('0.001')), float(Decimal(self.params.get("DcGain", encoding="utf8"))*Decimal('0.00001')))
+          self.str_log2 = 'T={:04.0f}/{:05.3f}/{:07.5f}'.format(
+           int(self.params.get("Scale", encoding="utf8")) * 1.0,
+           int(self.params.get("LqrKi", encoding="utf8")) * 0.001,
+           int(self.params.get("DcGain", encoding="utf8")) * 0.00001)
         elif CS.CP.lateralTuning.which() == 'torque':
-          max_lat_accel = float(Decimal(self.params.get("TorqueMaxLatAccel", encoding="utf8"))*Decimal('0.1'))
-          self.str_log2 = 'T={:0.2f}/{:0.2f}/{:0.2f}/{:0.3f}'.format(float(Decimal(self.params.get("TorqueKp", encoding="utf8"))*Decimal('0.1'))/max_lat_accel, \
-           float(Decimal(self.params.get("TorqueKf", encoding="utf8"))*Decimal('0.1'))/max_lat_accel, float(Decimal(self.params.get("TorqueKi", encoding="utf8"))*Decimal('0.1'))/max_lat_accel, \
-           float(Decimal(self.params.get("TorqueFriction", encoding="utf8")) * Decimal('0.001')))
+          max_lat_accel = int(self.params.get("TorqueMaxLatAccel", encoding="utf8")) * 0.1
+          self.str_log2 = 'T={:0.2f}/{:0.2f}/{:0.2f}/{:0.3f}'.format(
+           int(self.params.get("TorqueKp", encoding="utf8")) * 0.1 / max_lat_accel,
+           int(self.params.get("TorqueKf", encoding="utf8")) * 0.1 / max_lat_accel,
+           int(self.params.get("TorqueKi", encoding="utf8")) * 0.1 / max_lat_accel,
+           int(self.params.get("TorqueFriction", encoding="utf8")) * 0.001)
 
     trace1.printf1('{}  {}'.format(str_log1, self.str_log2))
 

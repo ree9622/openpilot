@@ -17,7 +17,6 @@ else:
 from casadi import SX, vertcat
 
 from common.params import Params
-from decimal import Decimal
 
 MODEL_NAME = 'long'
 LONG_MPC_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -206,10 +205,10 @@ class LongitudinalMpc:
 
     self.TR = 1.45
     self.dynamic_TR = 0
-    self.cruise_gap1 = float(Decimal(Params().get("CruiseGap1", encoding="utf8")) * Decimal('0.1'))
-    self.cruise_gap2 = float(Decimal(Params().get("CruiseGap2", encoding="utf8")) * Decimal('0.1'))
-    self.cruise_gap3 = float(Decimal(Params().get("CruiseGap3", encoding="utf8")) * Decimal('0.1'))
-    self.cruise_gap4 = float(Decimal(Params().get("CruiseGap4", encoding="utf8")) * Decimal('0.1'))
+    self.cruise_gap1 = int(Params().get("CruiseGap1", encoding="utf8")) * 0.1
+    self.cruise_gap2 = int(Params().get("CruiseGap2", encoding="utf8")) * 0.1
+    self.cruise_gap3 = int(Params().get("CruiseGap3", encoding="utf8")) * 0.1
+    self.cruise_gap4 = int(Params().get("CruiseGap4", encoding="utf8")) * 0.1
 
     self.dynamic_tr_spd = list(map(float, Params().get("DynamicTRSpd", encoding="utf8").split(',')))
     self.dynamic_tr_set = list(map(float, Params().get("DynamicTRSet", encoding="utf8").split(',')))

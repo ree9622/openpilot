@@ -27,7 +27,7 @@ public:
     LAT_PID = 0,
     LAT_INDI,
     LAT_LQR,
-    LAT_TOROUE,
+    LAT_TORQUE,
     LAT_MULTI,
     LAT_ALL,
   };  

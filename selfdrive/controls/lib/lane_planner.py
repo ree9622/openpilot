@@ -6,16 +6,15 @@ from common.realtime import DT_MDL
 from selfdrive.hardware import EON, TICI
 from selfdrive.swaglog import cloudlog
 from common.params import Params
-from decimal import Decimal
 
 TRAJECTORY_SIZE = 33
 # camera offset is meters from center car to camera
 # model path is in the frame of the camera. Empirically 
 # the model knows the difference between TICI and EON
 # so a path offset is not needed
-PATH_OFFSET = -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))  # default 0.0
+PATH_OFFSET = -(int(Params().get("PathOffsetAdj", encoding="utf8")) * 0.001)  # default 0.0
 if EON:
-  CAMERA_OFFSET = -(float(Decimal(Params().get("CameraOffsetAdj", encoding="utf8")) * Decimal('0.001')))  # m from center car to camera
+  CAMERA_OFFSET = -(int(Params().get("CameraOffsetAdj", encoding="utf8")) * 0.001)  # m from center car to camera
   CAMERA_OFFSET_A = CAMERA_OFFSET + 0.15
 elif TICI:
   CAMERA_OFFSET = 0.04
@@ -33,9 +32,9 @@ class LanePlanner:
     self.rll_y = np.zeros((TRAJECTORY_SIZE,))
 
     self.params = Params()
-    self.lane_width_estimate = FirstOrderFilter(float(Decimal(self.params.get("LaneWidth", encoding="utf8")) * Decimal('0.1')), 9.95, DT_MDL)
+    self.lane_width_estimate = FirstOrderFilter(int(self.params.get("LaneWidth", encoding="utf8")) * 0.1, 9.95, DT_MDL)
     self.lane_width_certainty = FirstOrderFilter(1.0, 0.95, DT_MDL)
-    self.lane_width = float(Decimal(self.params.get("LaneWidth", encoding="utf8")) * Decimal('0.1'))
+    self.lane_width = int(self.params.get("LaneWidth", encoding="utf8")) * 0.1
     self.spd_lane_width_spd = list(map(float, self.params.get("SpdLaneWidthSpd", encoding="utf8").split(',')))
     self.spd_lane_width_set = list(map(float, self.params.get("SpdLaneWidthSet", encoding="utf8").split(',')))
 
@@ -64,8 +63,8 @@ class LanePlanner:
         self.drive_routine_on_co = False
 
     self.drive_close_to_edge = self.params.get_bool("CloseToRoadEdge")
-    self.left_edge_offset = float(Decimal(self.params.get("LeftEdgeOffset", encoding="utf8")) * Decimal('0.01'))
-    self.right_edge_offset = float(Decimal(self.params.get("RightEdgeOffset", encoding="utf8")) * Decimal('0.01'))
+    self.left_edge_offset = int(self.params.get("LeftEdgeOffset", encoding="utf8")) * 0.01
+    self.right_edge_offset = int(self.params.get("RightEdgeOffset", encoding="utf8")) * 0.01
 
     self.speed_offset = self.params.get_bool("SpeedCameraOffset")
 
@@ -122,7 +121,7 @@ class LanePlanner:
       self.lp_timer = 0.0
       self.speed_offset = self.params.get_bool("SpeedCameraOffset")
       if self.params.get_bool("OpkrLiveTunePanelEnable"):
-        self.camera_offset = -(float(Decimal(self.params.get("CameraOffsetAdj", encoding="utf8")) * Decimal('0.001')))
+        self.camera_offset = -(int(self.params.get("CameraOffsetAdj", encoding="utf8")) * 0.001)
 
     if self.drive_close_to_edge: # opkr
       left_edge_prob = np.clip(1.0 - md.roadEdgeStds[0], 0.0, 1.0)
@@ -173,7 +172,7 @@ class LanePlanner:
     if self.lp_timer2 > 1.0:
       self.lp_timer2 = 0.0
       if self.params.get_bool("OpkrLiveTunePanelEnable"):
-        self.path_offset = -(float(Decimal(self.params.get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
+        self.path_offset = -(int(self.params.get("PathOffsetAdj", encoding="utf8")) * 0.001)
     # Reduce reliance on lanelines that are too far apart or
     # will be in a few seconds
     path_xyz[:, 1] += self.path_offset

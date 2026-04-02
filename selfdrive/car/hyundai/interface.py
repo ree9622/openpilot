@@ -9,7 +9,6 @@ from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.disable_ecu import disable_ecu
 
 from common.params import Params
-from decimal import Decimal
 
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
@@ -90,10 +89,10 @@ class CarInterface(CarInterfaceBase):
     ret.aqValueRaw = 0
 
     params = Params()
-    tire_stiffness_factor = float(Decimal(params.get("TireStiffnessFactorAdj", encoding="utf8")) * Decimal('0.01'))
-    ret.steerActuatorDelay = float(Decimal(params.get("SteerActuatorDelayAdj", encoding="utf8")) * Decimal('0.01'))
-    ret.steerLimitTimer = float(Decimal(params.get("SteerLimitTimerAdj", encoding="utf8")) * Decimal('0.01'))
-    ret.steerRatio = float(Decimal(params.get("SteerRatioAdj", encoding="utf8")) * Decimal('0.01'))
+    tire_stiffness_factor = int(params.get("TireStiffnessFactorAdj", encoding="utf8")) * 0.01
+    ret.steerActuatorDelay = int(params.get("SteerActuatorDelayAdj", encoding="utf8")) * 0.01
+    ret.steerLimitTimer = int(params.get("SteerLimitTimerAdj", encoding="utf8")) * 0.01
+    ret.steerRatio = int(params.get("SteerRatioAdj", encoding="utf8")) * 0.01
 
     lat_control_method = int(params.get("LateralControlMethod", encoding="utf8"))
     if lat_control_method == 0:

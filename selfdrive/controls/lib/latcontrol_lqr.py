@@ -7,7 +7,6 @@ from cereal import log
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 
 from common.params import Params
-from decimal import Decimal
 
 class LatControlLQR(LatControl):
   def __init__(self, CP, CI):
@@ -42,9 +41,9 @@ class LatControlLQR(LatControl):
   def live_tune(self, CP):
     self.mpc_frame += 1
     if self.mpc_frame % 300 == 0:
-      self.scale_ = float(Decimal(self.params.get("Scale", encoding="utf8")) * Decimal('1.0'))
-      self.ki_ = float(Decimal(self.params.get("LqrKi", encoding="utf8")) * Decimal('0.001'))
-      self.dc_gain_ = float(Decimal(self.params.get("DcGain", encoding="utf8")) * Decimal('0.00001'))
+      self.scale_ = int(self.params.get("Scale", encoding="utf8")) * 1.0
+      self.ki_ = int(self.params.get("LqrKi", encoding="utf8")) * 0.001
+      self.dc_gain_ = int(self.params.get("DcGain", encoding="utf8")) * 0.00001
       self.scale = self.scale_
       self.ki = self.ki_
       self.dc_gain = self.dc_gain_

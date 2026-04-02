@@ -5,10 +5,10 @@ from selfdrive.controls.lib.pid import LongPIDController
 from selfdrive.controls.lib.drive_helpers import CONTROL_N
 from selfdrive.modeld.constants import T_IDXS
 
-from selfdrive.car.hyundai.values import CAR
+# Decoupled from hyundai.values to keep longcontrol generic
+_NIRO_EV_DE = "KIA NIRO EV (DE)"
 from common.conversions import Conversions as CV
 from common.params import Params
-from decimal import Decimal
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc
 
 import common.log as trace1
@@ -65,7 +65,7 @@ class LongControl():
 
     self.candidate = candidate
     self.long_log = Params().get_bool("LongLogDisplay")
-    self.stopping_dist = float(Decimal(Params().get("StoppingDist", encoding="utf8"))*Decimal('0.1'))
+    self.stopping_dist = int(Params().get("StoppingDist", encoding="utf8")) * 0.1
 
     self.vRel_prev = 0
     self.decel_damping = 1.0
@@ -131,7 +131,7 @@ class LongControl():
                                                        v_target, v_target_future, CS.brakePressed,
                                                        CS.cruiseState.standstill, stop, CS.gasPressed)
 
-    if (self.long_control_state == LongCtrlState.off or (CS.brakePressed or CS.gasPressed)) and self.candidate != CAR.NIRO_EV_DE:
+    if (self.long_control_state == LongCtrlState.off or (CS.brakePressed or CS.gasPressed)) and self.candidate != _NIRO_EV_DE:
       self.pid.reset()
       output_accel = 0.
     elif self.long_control_state == LongCtrlState.off or CS.gasPressed:

@@ -5,7 +5,6 @@ from common.realtime import DT_MDL
 
 from common.numpy_fast import interp
 from common.params import Params
-from decimal import Decimal
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
@@ -56,8 +55,9 @@ class DesireHelper:
 
     self.lane_change_wait_timer = 0.0
 
-    self.lane_change_adjust = [float(Decimal(Params().get("LCTimingFactor30", encoding="utf8")) * Decimal('0.01')), float(Decimal(Params().get("LCTimingFactor60", encoding="utf8")) * Decimal('0.01')),
-     float(Decimal(Params().get("LCTimingFactor80", encoding="utf8")) * Decimal('0.01')), float(Decimal(Params().get("LCTimingFactor110", encoding="utf8")) * Decimal('0.01'))]
+    lc_params = Params()
+    self.lane_change_adjust = [int(lc_params.get("LCTimingFactor30", encoding="utf8")) * 0.01, int(lc_params.get("LCTimingFactor60", encoding="utf8")) * 0.01,
+     int(lc_params.get("LCTimingFactor80", encoding="utf8")) * 0.01, int(lc_params.get("LCTimingFactor110", encoding="utf8")) * 0.01]
     self.lane_change_adjust_vel = [30*CV.KPH_TO_MS, 60*CV.KPH_TO_MS, 80*CV.KPH_TO_MS, 110*CV.KPH_TO_MS]
     self.lane_change_adjust_new = 2
     self.lane_change_adjust_enable = Params().get_bool("LCTimingFactorEnable")

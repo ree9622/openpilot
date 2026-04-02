@@ -8,7 +8,6 @@ from common.filter_simple import FirstOrderFilter
 from common.stat_live import RunningStatFilter
 
 from common.params import Params
-from decimal import Decimal
 
 EventName = car.CarEvent.EventName
 
@@ -135,9 +134,9 @@ class DriverStatus():
     self.threshold_pre = self.settings._DISTRACTED_PRE_TIME_TILL_TERMINAL / self.settings._DISTRACTED_TIME
     self.threshold_prompt = self.settings._DISTRACTED_PROMPT_TIME_TILL_TERMINAL / self.settings._DISTRACTED_TIME
 
-    self.MonitorEyesThreshold = float(Decimal(Params().get("OpkrMonitorEyesThreshold", encoding="utf8")) * Decimal('0.01'))
-    self.NormalEyesThreshold = float(Decimal(Params().get("OpkrMonitorNormalEyesThreshold", encoding="utf8")) * Decimal('0.01'))
-    self.BlinkThreshold = float(Decimal(Params().get("OpkrMonitorBlinkThreshold", encoding="utf8")) * Decimal('0.01'))
+    self.MonitorEyesThreshold = int(Params().get("OpkrMonitorEyesThreshold", encoding="utf8")) * 0.01
+    self.NormalEyesThreshold = int(Params().get("OpkrMonitorNormalEyesThreshold", encoding="utf8")) * 0.01
+    self.BlinkThreshold = int(Params().get("OpkrMonitorBlinkThreshold", encoding="utf8")) * 0.01
 
     self.monitoring_mode = Params().get_bool("OpkrMonitoringMode")
     self.second1 = 0.0

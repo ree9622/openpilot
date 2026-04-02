@@ -7,7 +7,6 @@ from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from common.params import Params
-from decimal import Decimal
 
 
 class LatControlINDI(LatControl):
@@ -65,10 +64,10 @@ class LatControlINDI(LatControl):
   def live_tune(self, CP):
     self.mpc_frame += 1
     if self.mpc_frame % 300 == 0:
-      self.outerLoopGain = float(Decimal(self.params.get("OuterLoopGain", encoding="utf8")) * Decimal('0.1'))
-      self.innerLoopGain = float(Decimal(self.params.get("InnerLoopGain", encoding="utf8")) * Decimal('0.1'))
-      self.timeConstant = float(Decimal(self.params.get("TimeConstant", encoding="utf8")) * Decimal('0.1'))
-      self.actuatorEffectiveness = float(Decimal(self.params.get("ActuatorEffectiveness", encoding="utf8")) * Decimal('0.1'))
+      self.outerLoopGain = int(self.params.get("OuterLoopGain", encoding="utf8")) * 0.1
+      self.innerLoopGain = int(self.params.get("InnerLoopGain", encoding="utf8")) * 0.1
+      self.timeConstant = int(self.params.get("TimeConstant", encoding="utf8")) * 0.1
+      self.actuatorEffectiveness = int(self.params.get("ActuatorEffectiveness", encoding="utf8")) * 0.1
       self.RC = interp(self.speed, [0.], [self.timeConstant]) 
       self.G = interp(self.speed, [0.], [self.actuatorEffectiveness])
       self.outer_loop_gain = interp(self.speed, [0.], [self.outerLoopGain])

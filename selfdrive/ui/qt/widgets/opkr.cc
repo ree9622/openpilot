@@ -57,7 +57,7 @@ CLateralControlGroup::CLateralControlGroup() : CGroupWidget( tr("Lateral Control
   FramePID( CreateBoxLayout(LAT_PID) );
   FrameINDI( CreateBoxLayout(LAT_INDI) );
   FrameLQR( CreateBoxLayout(LAT_LQR) );
-  FrameTORQUE( CreateBoxLayout(LAT_TOROUE));
+  FrameTORQUE( CreateBoxLayout(LAT_TORQUE));
   FrameMULTI( CreateBoxLayout(LAT_MULTI) );
 
   refresh();
@@ -96,7 +96,7 @@ void  CLateralControlGroup::FrameLQR(QVBoxLayout *layout)
 
 void  CLateralControlGroup::FrameTORQUE(QVBoxLayout *layout)
 {
-  // QVBoxLayout *layout = CreateBoxLayout(LAT_TOROUE);
+  // QVBoxLayout *layout = CreateBoxLayout(LAT_TORQUE);
    
     layout->addWidget(new TorqueMaxLatAccel());
     layout->addWidget(new TorqueKp());
@@ -138,7 +138,7 @@ void CLateralControlGroup::refresh( int nID )
     case LAT_PID : str = "0.PID"; break;
     case LAT_INDI : str = "1.INDI";  break;
     case LAT_LQR : str = "2.LQR";  break;
-    case LAT_TOROUE : str = "3.TORQUE";  break;
+    case LAT_TORQUE : str = "3.TORQUE";  break;
     case LAT_MULTI : str = "4.MULTI";  break;
   }
 

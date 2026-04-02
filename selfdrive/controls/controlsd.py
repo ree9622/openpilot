@@ -29,10 +29,15 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
 from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
-from selfdrive.car.hyundai.values import Buttons
-from decimal import Decimal
-
 import common.log as trace1
+
+# Cruise button constants (decoupled from hyundai.values)
+class Buttons:
+  NONE = 0
+  RES_ACCEL = 1
+  SET_DECEL = 2
+  GAP_DIST = 3
+  CANCEL = 4
 
 SOFT_DISABLE_TIME = 3  # seconds
 IS_KPH = Params().get_bool("IsMetric")
@@ -217,31 +222,32 @@ class Controls:
     self.mpc_frame = 0
     self.mpc_frame_sr = 0
 
-    self.steerRatio_Max = float(Decimal(params.get("SteerRatioMaxAdj", encoding="utf8")) * Decimal('0.01'))
+    self.steerRatio_Max = int(params.get("SteerRatioMaxAdj", encoding="utf8")) * 0.01
     self.steer_angle_range = [5, 30]
     self.steerRatio_range = [self.CP.steerRatio, self.steerRatio_Max]
     self.new_steerRatio = self.CP.steerRatio
     self.new_steerRatio_prev = self.CP.steerRatio
     self.steerRatio_to_send = 0
     self.live_sr = params.get_bool("OpkrLiveSteerRatio")
-    self.live_sr_percent = int(Params().get("LiveSteerRatioPercent", encoding="utf8"))
+    self.live_sr_percent = int(params.get("LiveSteerRatioPercent", encoding="utf8"))
 
-    self.steer_max = int(Params().get("SteerMaxAdj", encoding="utf8"))
+    self.steer_max = int(params.get("SteerMaxAdj", encoding="utf8"))
 
     self.second = 0.0
     self.second2 = 0.0
     self.map_enabled = False
-    self.lane_change_delay = int(Params().get("OpkrAutoLaneChangeDelay", encoding="utf8"))
-    self.auto_enable_speed = max(1, int(Params().get("AutoEnableSpeed", encoding="utf8"))) if int(Params().get("AutoEnableSpeed", encoding="utf8")) > -1 else int(Params().get("AutoEnableSpeed", encoding="utf8"))
+    self.lane_change_delay = int(params.get("OpkrAutoLaneChangeDelay", encoding="utf8"))
+    auto_enable_speed_val = int(params.get("AutoEnableSpeed", encoding="utf8"))
+    self.auto_enable_speed = max(1, auto_enable_speed_val) if auto_enable_speed_val > -1 else auto_enable_speed_val
     self.e2e_long_alert_prev = True
     self.unsleep_mode_alert_prev = True
     self.donotdisturb_mode_alert_prev = True
-    self.stock_navi_info_enabled = Params().get_bool("StockNaviSpeedEnabled")
-    self.ignore_can_error_on_isg = Params().get_bool("IgnoreCANErroronISG")
+    self.stock_navi_info_enabled = params.get_bool("StockNaviSpeedEnabled")
+    self.ignore_can_error_on_isg = params.get_bool("IgnoreCANErroronISG")
     self.ready_timer = 0
-    self.osm_waze_spdlimit_offset = int(Params().get("OpkrSpeedLimitOffset", encoding="utf8"))
-    self.osm_waze_spdlimit_offset_option = int(Params().get("OpkrSpeedLimitOffsetOption", encoding="utf8"))
-    self.osm_speedlimit_enabled = Params().get_bool("OSMSpeedLimitEnable")
+    self.osm_waze_spdlimit_offset = int(params.get("OpkrSpeedLimitOffset", encoding="utf8"))
+    self.osm_waze_spdlimit_offset_option = int(params.get("OpkrSpeedLimitOffsetOption", encoding="utf8"))
+    self.osm_speedlimit_enabled = params.get_bool("OSMSpeedLimitEnable")
     self.osm_waze_speedlimit = 255
     self.pause_spdlimit = False
     self.osm_waze_off_spdlimit_init = False
@@ -250,17 +256,16 @@ class Controls:
     self.lkas_temporary_off = False
     self.gap_by_spd_on_temp = True
     try:
-      self.roadname_and_slc = Params().get("RoadList", encoding="utf8").strip().splitlines()[1].split(',')
-    except:
+      self.roadname_and_slc = params.get("RoadList", encoding="utf8").strip().splitlines()[1].split(',')
+    except Exception:
       self.roadname_and_slc = ""
-      pass
 
-    self.var_cruise_speed_factor = int(Params().get("VarCruiseSpeedFactor", encoding="utf8"))
+    self.var_cruise_speed_factor = int(params.get("VarCruiseSpeedFactor", encoding="utf8"))
     self.desired_angle_deg = 0
-    self.navi_selection = int(Params().get("OPKRNaviSelect", encoding="utf8"))
+    self.navi_selection = int(params.get("OPKRNaviSelect", encoding="utf8"))
 
-    self.osm_waze_custom_spdlimit_c = list(map(int, Params().get("OSMCustomSpeedLimitC", encoding="utf8").split(',')))
-    self.osm_waze_custom_spdlimit_t = list(map(int, Params().get("OSMCustomSpeedLimitT", encoding="utf8").split(',')))
+    self.osm_waze_custom_spdlimit_c = list(map(int, params.get("OSMCustomSpeedLimitC", encoding="utf8").split(',')))
+    self.osm_waze_custom_spdlimit_t = list(map(int, params.get("OSMCustomSpeedLimitT", encoding="utf8").split(',')))
 
     self.pause_spdlimit_push = False
     self.pause_spdlimit_push_cnt = 0
@@ -1062,7 +1067,7 @@ class Controls:
         try:
           r_index = self.roadname_and_slc.index(self.sm['liveMapData'].currentRoadName)
           controlsState.limitSpeedCamera = float(self.roadname_and_slc[r_index+1])
-        except:
+        except (ValueError, IndexError):
           pass
     elif self.navi_selection == 4:
       controlsState.limitSpeedCamera = int(round(self.sm['liveENaviData'].speedLimit))

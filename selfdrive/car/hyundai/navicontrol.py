@@ -31,9 +31,10 @@ class NaviControl():
 
     self.gasPressed_old = 0
 
-    self.map_spdlimit_offset = int(Params().get("OpkrSpeedLimitOffset", encoding="utf8"))
-    self.map_spdlimit_offset_option = int(Params().get("OpkrSpeedLimitOffsetOption", encoding="utf8"))
-    self.safetycam_decel_dist_gain = int(Params().get("SafetyCamDecelDistGain", encoding="utf8"))
+    self.params = Params()
+    self.map_spdlimit_offset = int(self.params.get("OpkrSpeedLimitOffset", encoding="utf8"))
+    self.map_spdlimit_offset_option = int(self.params.get("OpkrSpeedLimitOffsetOption", encoding="utf8"))
+    self.safetycam_decel_dist_gain = int(self.params.get("SafetyCamDecelDistGain", encoding="utf8"))
 
     self.map_speed_block = False
     self.map_speed_dist = 0
@@ -45,39 +46,38 @@ class NaviControl():
     self.cutInControl = False
     self.driverSccSetControl = False
     self.ctrl_speed = 0
-    self.vision_curv_speed_c = list(map(int, Params().get("VCurvSpeedC", encoding="utf8").split(',')))
-    self.vision_curv_speed_t = list(map(int, Params().get("VCurvSpeedT", encoding="utf8").split(',')))
-    self.vision_curv_speed_cmph = list(map(int, Params().get("VCurvSpeedCMPH", encoding="utf8").split(',')))
-    self.vision_curv_speed_tmph = list(map(int, Params().get("VCurvSpeedTMPH", encoding="utf8").split(',')))
+    self.vision_curv_speed_c = list(map(int, self.params.get("VCurvSpeedC", encoding="utf8").split(',')))
+    self.vision_curv_speed_t = list(map(int, self.params.get("VCurvSpeedT", encoding="utf8").split(',')))
+    self.vision_curv_speed_cmph = list(map(int, self.params.get("VCurvSpeedCMPH", encoding="utf8").split(',')))
+    self.vision_curv_speed_tmph = list(map(int, self.params.get("VCurvSpeedTMPH", encoding="utf8").split(',')))
 
-    self.osm_curv_speed_c = list(map(int, Params().get("OCurvSpeedC", encoding="utf8").split(',')))
-    self.osm_curv_speed_t = list(map(int, Params().get("OCurvSpeedT", encoding="utf8").split(',')))
-    self.osm_custom_spdlimit_c = list(map(int, Params().get("OSMCustomSpeedLimitC", encoding="utf8").split(',')))
-    self.osm_custom_spdlimit_t = list(map(int, Params().get("OSMCustomSpeedLimitT", encoding="utf8").split(',')))
+    self.osm_curv_speed_c = list(map(int, self.params.get("OCurvSpeedC", encoding="utf8").split(',')))
+    self.osm_curv_speed_t = list(map(int, self.params.get("OCurvSpeedT", encoding="utf8").split(',')))
+    self.osm_custom_spdlimit_c = list(map(int, self.params.get("OSMCustomSpeedLimitC", encoding="utf8").split(',')))
+    self.osm_custom_spdlimit_t = list(map(int, self.params.get("OSMCustomSpeedLimitT", encoding="utf8").split(',')))
 
     self.osm_wait_timer = 0
-    self.stock_navi_info_enabled = Params().get_bool("StockNaviSpeedEnabled")
-    self.osm_speedlimit_enabled = Params().get_bool("OSMSpeedLimitEnable")
-    self.speedlimit_decel_off = Params().get_bool("SpeedLimitDecelOff")
-    self.curv_decel_option = int(Params().get("CurvDecelOption", encoding="utf8"))
+    self.stock_navi_info_enabled = self.params.get_bool("StockNaviSpeedEnabled")
+    self.osm_speedlimit_enabled = self.params.get_bool("OSMSpeedLimitEnable")
+    self.speedlimit_decel_off = self.params.get_bool("SpeedLimitDecelOff")
+    self.curv_decel_option = int(self.params.get("CurvDecelOption", encoding="utf8"))
     self.cut_in = False
     self.cut_in_run_timer = 0
 
-    self.drive_routine_on_sl = Params().get_bool("RoutineDriveOn")
+    self.drive_routine_on_sl = self.params.get_bool("RoutineDriveOn")
     if self.drive_routine_on_sl:
-      option_list = list(Params().get("RoutineDriveOption", encoding="utf8"))
+      option_list = list(self.params.get("RoutineDriveOption", encoding="utf8"))
       if '1' in option_list:
         self.drive_routine_on_sl = True
       else:
         self.drive_routine_on_sl = False
     try:
-      self.roadname_and_sl = Params().get("RoadList", encoding="utf8").strip().splitlines()[1].split(',')
-    except:
+      self.roadname_and_sl = self.params.get("RoadList", encoding="utf8").strip().splitlines()[1].split(',')
+    except Exception:
       self.roadname_and_sl = ""
-      pass
 
-    self.decel_on_speedbump = Params().get_bool("OPKRSpeedBump")
-    self.navi_sel = int(Params().get("OPKRNaviSelect", encoding="utf8"))
+    self.decel_on_speedbump = self.params.get_bool("OPKRSpeedBump")
+    self.navi_sel = int(self.params.get("OPKRNaviSelect", encoding="utf8"))
 
     self.na_timer = 0
     self.t_interval = 7
@@ -550,7 +550,7 @@ class NaviControl():
     self.na_timer += 1
     if self.na_timer > 100:
       self.na_timer = 0
-      self.speedlimit_decel_off = Params().get_bool("SpeedLimitDecelOff")
+      self.speedlimit_decel_off = self.params.get_bool("SpeedLimitDecelOff")
     btn_signal = None
     if not self.button_status(CS):  # 사용자가 버튼클릭하면 일정시간 기다린다.
       pass

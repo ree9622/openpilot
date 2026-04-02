@@ -13,7 +13,6 @@ from cereal import log
 
 from common.conversions import Conversions as CV
 from common.params import Params
-from decimal import Decimal
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 

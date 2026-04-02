@@ -22,11 +22,11 @@ def printf3( txt ):
     global global_alertTextMsg3
     global_alertTextMsg3 = txt    
 
-class Loger:
+class Logger:
     debug_step_latch = 0   # debug
     debug_step_data = 0  # debug 
 
-    def __init__(self, txt_msg="defualt", time_val = 0. ):
+    def __init__(self, txt_msg="default", time_val = 0. ):
         self.name = txt_msg
         self.nTime = time_val * 0.001
         self.old_txt = ""
@@ -34,7 +34,7 @@ class Loger:
         self.Timer1 = tm.CTime1000("LOG")
 
     def __del__(self):
-        print( "{} - Loger class delete".format( self.name ))
+        print( "{} - Logger class delete".format( self.name ))
 
 
 
@@ -56,11 +56,8 @@ class Loger:
                     path_file_name = ROOT_LOG + cur_date + '-' + self.name + ".txt"
                     with open( path_file_name, "a") as file:
                         file.write( log_data )
-                except:
-                    print("file open error file name:", path_file_name)
-                    pass
-                finally:  # try end 
-                    pass       
+                except IOError as e:
+                    print("file open error file name: {} ({})".format(path_file_name, e))
 
 
 

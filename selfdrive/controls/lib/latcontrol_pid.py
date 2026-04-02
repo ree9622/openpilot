@@ -5,7 +5,6 @@ from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from cereal import log
 
 from common.params import Params
-from decimal import Decimal
 
 
 class LatControlPID(LatControl):
@@ -32,10 +31,10 @@ class LatControlPID(LatControl):
   def live_tune(self, CP):
     self.mpc_frame += 1
     if self.mpc_frame % 300 == 0:
-      self.steerKpV = float(Decimal(self.params.get("PidKp", encoding="utf8")) * Decimal('0.01'))
-      self.steerKiV = float(Decimal(self.params.get("PidKi", encoding="utf8")) * Decimal('0.001'))
-      self.steerKdV = float(Decimal(self.params.get("PidKd", encoding="utf8")) * Decimal('0.01'))
-      self.steerKf = float(Decimal(self.params.get("PidKf", encoding="utf8")) * Decimal('0.00001'))
+      self.steerKpV = int(self.params.get("PidKp", encoding="utf8")) * 0.01
+      self.steerKiV = int(self.params.get("PidKi", encoding="utf8")) * 0.001
+      self.steerKdV = int(self.params.get("PidKd", encoding="utf8")) * 0.01
+      self.steerKf = int(self.params.get("PidKf", encoding="utf8")) * 0.00001
       self.pid = LatPIDController(([0., 9.], [0.1, self.steerKpV]),
                           ([0., 9.], [0.01, self.steerKiV]),
                           ([0.], [self.steerKdV]),

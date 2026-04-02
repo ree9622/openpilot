@@ -6,11 +6,11 @@ from common.conversions import Conversions as CV
 from selfdrive.modeld.constants import T_IDXS
 
 from common.params import Params
-from decimal import Decimal
 
 # from chanhojung's idea, parameterized by opkr
-if Params().get("DesiredCurvatureLimit", encoding="utf8") is not None:
-  DESIRED_CURVATURE_LIMIT = float(Decimal(Params().get("DesiredCurvatureLimit", encoding="utf8")) * Decimal('0.01'))
+_dcl_val = Params().get("DesiredCurvatureLimit", encoding="utf8")
+if _dcl_val is not None:
+  DESIRED_CURVATURE_LIMIT = int(_dcl_val) * 0.01
 else:
   DESIRED_CURVATURE_LIMIT = DT_MDL
 

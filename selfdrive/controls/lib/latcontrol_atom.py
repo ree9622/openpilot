@@ -7,7 +7,6 @@ from common.numpy_fast import clip, interp
 from common.filter_simple import FirstOrderFilter
 
 from common.params import Params
-from decimal import Decimal
 from common.conversions import Conversions as CV
 
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
