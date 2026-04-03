@@ -1,5 +1,18 @@
 # OPKR Enhanced Fork — 개발 가이드
 
+## 작업 전 필독 문서 (CRITICAL)
+
+**코드 수정 전 작업 유형에 맞는 문서를 반드시 읽을 것:**
+
+| 작업 유형 | 필독 문서 | 이유 |
+|----------|----------|------|
+| 아무 코드 수정이든 | [docs/DEPENDENCY-CHAINS.md](docs/DEPENDENCY-CHAINS.md) | 연쇄 수정 누락 방지 |
+| 구조/흐름 파악 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 모듈 관계, 데이터 흐름 |
+| 튜닝값 변경 | [docs/TUNING.md](docs/TUNING.md) | 스케일 변환, 상호작용, 현재값 |
+| Param 관련 작업 | [docs/PARAMS.md](docs/PARAMS.md) | 키/기본값/스케일/읽는 파일 |
+| 새 기능 추가 | ARCHITECTURE.md + DEPENDENCY-CHAINS.md 둘 다 | |
+| 변경 이력 확인 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | 커밋 히스토리, 설정 이력, 이슈 |
+
 ## 기기 접속
 
 | 항목 | 값 |
@@ -64,4 +77,8 @@ ssh -i ~/.ssh/id_ed25519 comma@192.168.0.167 \
 
 ## 상세 문서
 
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — 제어 루프, 모듈 관계, 데이터 흐름
+- [docs/PARAMS.md](docs/PARAMS.md) — 전체 파라미터 카탈로그 (키/기본값/스케일/읽는 파일)
+- [docs/DEPENDENCY-CHAINS.md](docs/DEPENDENCY-CHAINS.md) — 수정 시 연쇄 변경 필요한 곳
+- [docs/TUNING.md](docs/TUNING.md) — 조향/종방향 튜닝 레퍼런스 (현재값, 상호작용)
 - [docs/CHANGELOG.md](docs/CHANGELOG.md) — 변경 내역, 설정 이력, 이슈 현황
