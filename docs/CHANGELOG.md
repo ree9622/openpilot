@@ -4,6 +4,7 @@
 
 | 커밋 | 날짜 | 설명 |
 |------|------|------|
+| (new) | 2026-04-03 | 조향 컨트롤러 3대 개선 (지연보상/Jerk FF/라이브학습) |
 | `b8721ff` | 2026-04-03 | CLAUDE.md 추가 |
 | `13114a1` | 2026-04-03 | 선행차 급접근 시 감속 반응 개선 |
 | `204950c` | 2026-04-03 | 레이더 기반 선행차 출발 알림 추가 |
@@ -101,6 +102,34 @@
 | OpkrSteerMethod | 스티어링 모드 | 1 (Smooth) | 부드러운 전환 |
 | LateralControlMethod | 조향 제어 | 3 (Torque) | K5 DL3 적합 |
 | LaneWidth | 차선폭 | 37 (3.7m) | 실시간 수렴 |
+
+---
+
+### 8. 조향 컨트롤러 3대 개선 (stock openpilot 백포트)
+
+**파일**: `selfdrive/controls/lib/latcontrol_torque.py`, `latcontrol_atom.py`
+
+**8-1. 조향 지연 보상 버퍼 (Delay Compensation)**
+- stock openpilot의 핵심 개선사항 백포트
+- `steerActuatorDelay`(K5 기본 360ms) 만큼 과거의 요청 curvature와 현재 측정값을 비교
+- 기존: "지금 원하는 것" vs "지금 측정값" → 위상 지연으로 오버슈트/진동
+- 개선: "360ms 전에 원한 것" vs "지금 측정값" → 위상 지연 제거
+- `curvature_request_buffer`: deque 기반 링 버퍼
+
+**8-2. Jerk 피드포워드 (Jerk Feedforward)**
+- `desired_lateral_jerk = d(desired_lateral_accel)/dt`
+- 조향 전환 시 (직진→커브, 커브→직진) 응답 지연 감소
+- `JERK_GAIN = 0.05` (보수적, 실차 튜닝 필요)
+
+**8-3. 라이브 토크 학습 (LiveTorqueLearner)**
+- stock openpilot `torqued` 데몬의 핵심 알고리즘을 경량 인라인 구현
+- 54km/h 이상, 인게이지 2초 후, 비과격 주행 시 (output_torque, actual_lat_accel) 수집
+- 선형 회귀로 friction과 kf 보정계수를 실시간 학습
+- 초기값 대비 ±30% 범위 제한, EMA(0.995) 스무딩
+- OpkrLiveTunePanelEnable=1이면 학습 비활성 (수동 튜닝 우선)
+- 타이어 마모, 노면 상태, 차량 개체차에 자동 적응
+
+**ATOM 호환**: `LatCtrlToqATOM`에 동일 속성 초기화 추가 — ATOM(3) + Smooth(1) 설정에서 정상 작동
 
 ---
 

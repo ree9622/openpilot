@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from collections import deque
 
 from cereal import log
 from common.realtime import DT_CTRL
@@ -24,9 +25,9 @@ class LatCtrlToqATOM(LatControlTorque):
     self.params = Params()
     self.sat_count_rate = 1.0 * DT_CTRL
     self.sat_limit = CP.steerLimitTimer
-    self.sat_count = 0. 
-    
-    # we define the steer torque scale as [-1.0...1.0] 
+    self.sat_count = 0.
+
+    # we define the steer torque scale as [-1.0...1.0]
     self.steer_max = 1.0
 
     self.pid = PIDController(TORQUE.kp, TORQUE.ki,
@@ -39,6 +40,19 @@ class LatCtrlToqATOM(LatControlTorque):
 
     self.live_tune_enabled = False
     self.lt_timer = 0
+
+    # Delay compensation buffer (from enhanced LatControlTorque)
+    from selfdrive.controls.lib.latcontrol_torque import DT_CTRL as DT, LiveTorqueLearner
+    delay_seconds = CP.steerActuatorDelay
+    self.delay_frames = max(1, int(round(delay_seconds / DT)))
+    self.curvature_request_buffer = deque([0.0] * (self.delay_frames + 1), maxlen=200)
+
+    # Jerk feedforward state
+    self.prev_desired_lateral_accel = 0.0
+
+    # Live torque learning
+    self.learner = LiveTorqueLearner(self.friction, self.kf)
+    self.learning_update_timer = 0
 
 
 class LatCtrlLqrATOM(LatControlLQR):
