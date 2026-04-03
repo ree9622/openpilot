@@ -23,7 +23,8 @@ from selfdrive.controls.lib.latcontrol_lqr import LatControlLQR
 from selfdrive.controls.lib.latcontrol_angle import LatControlAngle
 from selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from selfdrive.controls.lib.latcontrol_atom import LatControlATOM
-from selfdrive.controls.lib.events import Events, ET
+from selfdrive.controls.lib.events import Events, ET, EVENT_NAME
+from selfdrive.controls.lib.drive_stats import DriveStats
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
@@ -192,6 +193,7 @@ class Controls:
     self.events_prev = []
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
+    self.drive_stats = DriveStats()
     self.button_timers = {ButtonEvent.Type.decelCruise: 0, ButtonEvent.Type.accelCruise: 0}
     self.last_actuators = car.CarControl.Actuators.new_message()
 
@@ -736,6 +738,8 @@ class Controls:
       elif self.events.any(ET.IMMEDIATE_DISABLE):
         self.state = State.disabled
         self.current_alert_types.append(ET.IMMEDIATE_DISABLE)
+        event_names = [EVENT_NAME.get(e, str(e)) for e in self.events.names]
+        cloudlog.error(f"DISENGAGE immediate: events={event_names} speed={CS.vEgo*3.6:.1f}kph steer={CS.steeringAngleDeg:.1f}deg")
 
       else:
         # ENABLED
@@ -756,6 +760,8 @@ class Controls:
 
           elif self.soft_disable_timer <= 0:
             self.state = State.disabled
+            event_names = [EVENT_NAME.get(e, str(e)) for e in self.events.names]
+            cloudlog.warning(f"DISENGAGE soft_timeout: events={event_names} speed={CS.vEgo*3.6:.1f}kph")
 
         # PRE ENABLING
         elif self.state == State.preEnabled:
@@ -772,6 +778,8 @@ class Controls:
       if self.events.any(ET.ENABLE):
         if self.events.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
+          event_names = [EVENT_NAME.get(e, str(e)) for e in self.events.names]
+          cloudlog.warning(f"ENGAGE blocked: events={event_names} speed={CS.vEgo*3.6:.1f}kph")
 
         else:
           if self.events.any(ET.PRE_ENABLE):
@@ -1169,6 +1177,7 @@ class Controls:
     if not self.read_only and self.initialized:
       # Update control state
       self.state_transition(CS)
+      self.drive_stats.update(self.enabled, CS, self.events)
       self.prof.checkpoint("State transition")
 
     # Compute actuators (runs PID loops and lateral MPC)
