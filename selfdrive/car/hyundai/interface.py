@@ -362,7 +362,7 @@ class CarInterface(CarInterfaceBase):
         events.add(EventName.brakeHold)
       if self.CC.auto_res_starting:
         events.add(EventName.resCruise)
-      if self.CC.e2e_standstill:
+      if self.CC.e2e_standstill or self.CC.lead_departed:
         events.add(EventName.chimeAtResume)
     if self.CS.cruiseState_standstill or self.CC.standstill_status == 1:
       #events.add(EventName.standStill)

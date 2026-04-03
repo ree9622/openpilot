@@ -239,6 +239,12 @@ class CarController():
     self.e2e_standstill_timer = 0
     self.e2e_standstill_timer_buf = 0
 
+    # Radar-based lead departure chime (works without E2ELong)
+    self.lead_departed = False
+    self.lead_standstill_dist = 0  # lead distance when standstill started
+    self.lead_standstill_timer = 0  # how long we've been stopped with a lead
+    self.lead_departed_timer = 0  # chime display duration
+
     self.str_log2 = 'MultiLateral'
     if CP.lateralTuning.which() == 'pid':
       self.str_log2 = 'T={:0.2f}/{:0.3f}/{:0.2f}/{:0.5f}'.format(CP.lateralTuning.pid.kpV[1], CP.lateralTuning.pid.kiV[1], CP.lateralTuning.pid.kdV[0], CP.lateralTuning.pid.kf)
@@ -829,6 +835,30 @@ class CarController():
             self.e2e_standstill_timer_buf = 0
         except Exception as e:
           print("e2e_standstill error: {}".format(e))
+
+      # Radar-based lead departure chime (works without E2ELong)
+      if not self.e2e_standstill:  # don't double-chime with E2E
+        if self.lead_departed:
+          self.lead_departed_timer += 1
+          if self.lead_departed_timer > 100:  # chime for 1 sec
+            self.lead_departed = False
+            self.lead_departed_timer = 0
+        elif CS.clu_Vanz == 0 and 0 < CS.lead_distance < 149:
+          # stopped with a lead car ahead
+          if self.lead_standstill_timer == 0:
+            self.lead_standstill_dist = CS.lead_distance
+          self.lead_standstill_timer += 1
+          # after 3 sec standstill, if lead moves away >1.5m, chime
+          if self.lead_standstill_timer > 300 and CS.lead_distance - self.lead_standstill_dist > 1.5:
+            self.lead_departed = True
+            self.lead_departed_timer = 0
+            self.lead_standstill_timer = 0
+            self.lead_standstill_dist = 0
+        else:
+          self.lead_standstill_timer = 0
+          self.lead_standstill_dist = 0
+          self.lead_departed = False
+          self.lead_departed_timer = 0
 
     if CS.brakeHold and not self.autohold_popup_switch:
       self.autohold_popup_timer = 100
