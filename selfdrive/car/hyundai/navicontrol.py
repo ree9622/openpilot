@@ -570,6 +570,9 @@ class NaviControl():
       cruiseState_speed = round(self.sm['controlsState'].vCruise)
 
       # cruise_max_speed 추적: 운전자가 설정한 최대 속도 보존
+      # 최초 활성화 시 차량 SCC의 실제 설정 속도(VSetDis)로 초기화
+      if self.cruise_max_speed == 0 and round(CS.VSetDis) > 30:
+        self.cruise_max_speed = round(CS.VSetDis)
       # cruiseState_speed가 올라가면 max도 올라감 (운전자가 RES_ACCEL 또는 시스템 복귀)
       if 30 < cruiseState_speed < 255:
         if cruiseState_speed > self.cruise_max_speed:
