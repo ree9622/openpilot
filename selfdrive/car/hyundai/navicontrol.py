@@ -81,6 +81,12 @@ class NaviControl():
     self.faststart = False
     self.safetycam_speed = 0
 
+    # cruise_max_speed: 운전자가 설정한 원래 크루즈 속도를 보존
+    # variable cruise가 선행차 추종 중 v_cruise_kph를 낮춰도 이 값은 유지됨
+    self.cruise_max_speed = 0
+    self.no_lead_frames = 0  # 선행차 미감지 연속 프레임 수
+    self.prev_cruiseState_speed = 0  # 이전 프레임 cruiseState_speed (하락 감지용)
+
   def update_lateralPlan(self):
     self.sm.update(0)
     path_plan = self.sm['lateralPlan']
@@ -553,16 +559,42 @@ class NaviControl():
     if self.na_timer > 100:
       self.na_timer = 0
       self.speedlimit_decel_off = self.params.get_bool("SpeedLimitDecelOff")
+    # cruise 비활성화 시 max speed 리셋
+    if not CS.cruise_active:
+      self.cruise_max_speed = 0
+      self.no_lead_frames = 0
     btn_signal = None
     if not self.button_status(CS):  # 사용자가 버튼클릭하면 일정시간 기다린다.
       pass
     elif CS.cruise_active:
       cruiseState_speed = round(self.sm['controlsState'].vCruise)
-      kph_set_vEgo = self.get_navi_speed(self.sm, CS, cruiseState_speed) # camspeed
+
+      # cruise_max_speed 추적: 운전자가 설정한 최대 속도 보존
+      # cruiseState_speed가 올라가면 max도 올라감 (운전자가 RES_ACCEL 또는 시스템 복귀)
+      if 30 < cruiseState_speed < 255:
+        if cruiseState_speed > self.cruise_max_speed:
+          self.cruise_max_speed = cruiseState_speed
+      # 선행차 유무 추적 (radarState는 이미 sm.update로 갱신됨)
+      has_lead = self.sm['radarState'].leadOne.status or self.sm['radarState'].leadTwo.status
+      if not has_lead:
+        self.no_lead_frames += 1
+      else:
+        self.no_lead_frames = 0
+      # 선행차 없는 상태가 1초 이상 지속 + cruiseState_speed가 직전 프레임보다 내려감
+      # → 운전자가 직접 SET_DECEL을 눌러 낮춘 것으로 판단 → cruise_max_speed도 낮춤
+      # (회복 중에는 속도가 올라가므로 이 조건에 걸리지 않음)
+      if self.no_lead_frames > 100 and cruiseState_speed < self.prev_cruiseState_speed and cruiseState_speed < self.cruise_max_speed:
+        self.cruise_max_speed = cruiseState_speed
+      self.prev_cruiseState_speed = cruiseState_speed
+
+      # cruiseState_speed가 오염되었을 수 있으므로, cruise_max_speed와 비교하여 복구 대상 결정
+      effective_cruise_speed = max(cruiseState_speed, self.cruise_max_speed)
+
+      kph_set_vEgo = self.get_navi_speed(self.sm, CS, effective_cruise_speed) # camspeed
       if self.osm_speedlimit_enabled and self.map_spdlimit_offset_option == 2:
         navi_speed = kph_set_vEgo
       else:
-        navi_speed = min(cruiseState_speed, kph_set_vEgo)
+        navi_speed = min(effective_cruise_speed, kph_set_vEgo)
       self.safetycam_speed = navi_speed
       if CS.cruise_set_mode == 0:
         self.ctrl_speed = cruiseState_speed
