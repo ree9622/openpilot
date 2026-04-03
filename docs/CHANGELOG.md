@@ -4,6 +4,9 @@
 
 | 커밋 | 날짜 | 설명 |
 |------|------|------|
+| `797172a` | 2026-04-03 | 튜닝: SteerActuatorDelay 36→30, TireStiffness 85→100, CurvatureLimit 10→20 |
+| `3237355` | 2026-04-03 | variable cruise: 재활성화 시 VSetDis로 cruise_max_speed 초기화 |
+| `cb473d4` | 2026-04-03 | variable cruise: 선행차 추종 후 설정 속도 복귀 안 되는 버그 수정 |
 | (new) | 2026-04-03 | 조향 컨트롤러 3대 개선 (지연보상/Jerk FF/라이브학습) |
 | `b8721ff` | 2026-04-03 | CLAUDE.md 추가 |
 | `13114a1` | 2026-04-03 | 선행차 급접근 시 감속 반응 개선 |
