@@ -4,10 +4,13 @@
 
 | 커밋 | 날짜 | 설명 |
 |------|------|------|
+| `ea526c5` | 2026-04-03 | CLAUDE.md: scons 빌드 필수 규칙 추가 |
+| `ae9b816` | 2026-04-03 | params.cc: TorqueJerkGain/TorqueLiveLearning 화이트리스트 등록 |
+| `e8ed7ff` | 2026-04-03 | UI: Jerk 피드포워드 슬라이더 + 라이브 토크 학습 토글 추가 |
 | `797172a` | 2026-04-03 | 튜닝: SteerActuatorDelay 36→30, TireStiffness 85→100, CurvatureLimit 10→20 |
 | `3237355` | 2026-04-03 | variable cruise: 재활성화 시 VSetDis로 cruise_max_speed 초기화 |
 | `cb473d4` | 2026-04-03 | variable cruise: 선행차 추종 후 설정 속도 복귀 안 되는 버그 수정 |
-| (new) | 2026-04-03 | 조향 컨트롤러 3대 개선 (지연보상/Jerk FF/라이브학습) |
+| `fbb9bb7` | 2026-04-03 | 조향 컨트롤러 3대 개선 (지연보상/Jerk FF/라이브학습) |
 | `b8721ff` | 2026-04-03 | CLAUDE.md 추가 |
 | `13114a1` | 2026-04-03 | 선행차 급접근 시 감속 반응 개선 |
 | `204950c` | 2026-04-03 | 레이더 기반 선행차 출발 알림 추가 |
@@ -91,6 +94,8 @@
 | ShowStopLine | 정지선 표시 | 1 | **0** | E2ELong=0이면 불필요 |
 | EndToEndToggle | E2E 토글 | 1 | **0** | E2ELong=0과 불일치 해소 |
 | VarCruiseSpeedFactor | 변속크루즈 속도 계수 | 10 | **8** | 일찍 감속 시작 |
+| TorqueKi | 토크 적분 게인 | 1 | **2** | 차선 중앙 유지 개선 |
+| TorqueFriction | 토크 마찰 보상 | 65 | **80** | 핸들 떨림 감소, 학습 초기값 개선 |
 
 ---
 
