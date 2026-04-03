@@ -1774,8 +1774,42 @@ private:
   QPushButton btnminus;
   QLabel label;
   Params params;
-  
+
   void refresh();
+};
+
+class TorqueJerkGain : public AbstractControl {
+  Q_OBJECT
+
+public:
+  TorqueJerkGain();
+
+private:
+  QPushButton btnplus;
+  QPushButton btnminus;
+  QLabel label;
+  Params params;
+
+  void refresh();
+};
+
+class TorqueLiveLearning : public ToggleControl {
+  Q_OBJECT
+
+public:
+  TorqueLiveLearning() : ToggleControl(
+    tr("라이브 토크 학습"),
+    tr("주행 중 마찰계수(Friction)와 피드포워드(Kf) 보정값을 자동 학습합니다. "
+       "54km/h 이상 고속 주행 시 데이터를 수집하여 타이어 마모, 노면 상태, 차량 개체차에 자동 적응합니다. "
+       "초기값 대비 ±30% 범위 내에서만 조정되며, 라이브 튜닝 패널(OpkrLiveTunePanelEnable)이 켜져 있으면 "
+       "학습이 비활성화되고 수동 튜닝값이 우선됩니다."),
+    "../assets/offroad/icon_shell.png",
+    Params().getBool("TorqueLiveLearning")) {
+    QObject::connect(this, &TorqueLiveLearning::toggleFlipped, [=](int state) {
+      bool status = state ? true : false;
+      Params().putBool("TorqueLiveLearning", status);
+    });
+  }
 };
 
 class SteerAngleCorrection : public AbstractControl {

@@ -26,7 +26,8 @@ FRICTION_THRESHOLD = 0.2
 
 # Jerk feedforward: improves transient response during steering transitions
 # From stock openpilot — scales the rate of change of desired lateral accel
-JERK_GAIN = 0.05
+# Default loaded from Params("TorqueJerkGain"), fallback to 0.05
+JERK_GAIN_DEFAULT = 0.05
 
 # Delay compensation: compare measurement against past request
 # instead of current request, eliminating phase lag oscillation
@@ -158,8 +159,14 @@ class LatControlTorque(LatControl):
 
     # --- Jerk feedforward state ---
     self.prev_desired_lateral_accel = 0.0
+    # Read jerk gain from Params (int * 0.01), fallback to default
+    try:
+      self.jerk_gain = int(self.params.get("TorqueJerkGain", encoding="utf8")) * 0.01
+    except (TypeError, ValueError):
+      self.jerk_gain = JERK_GAIN_DEFAULT
 
     # --- Live torque learning ---
+    self.live_learning_enabled = self.params.get_bool("TorqueLiveLearning")
     self.learner = LiveTorqueLearner(self.friction, self.kf)
     self.learning_update_timer = 0
 
@@ -179,6 +186,13 @@ class LatControlTorque(LatControl):
       # Re-sync learner with new manual values
       self.learner.initial_friction = self.friction
       self.learner.initial_kf = self.kf
+
+      # Read jerk gain and live learning toggle
+      try:
+        self.jerk_gain = int(self.params.get("TorqueJerkGain", encoding="utf8")) * 0.01
+      except (TypeError, ValueError):
+        self.jerk_gain = JERK_GAIN_DEFAULT
+      self.live_learning_enabled = self.params.get_bool("TorqueLiveLearning")
 
       self.mpc_frame = 0
 
@@ -221,10 +235,15 @@ class LatControlTorque(LatControl):
       self.prev_desired_lateral_accel = desired_lateral_accel
 
       # --- Live torque learning ---
-      # Apply learned friction (smooth blend with manual values)
-      learned_friction, learned_kf_factor = self.learner.get_learned_params()
-      effective_friction = self.friction if self.live_tune_enabled else learned_friction
-      effective_kf = self.kf * learned_kf_factor if not self.live_tune_enabled else self.kf
+      # Apply learned params only when learning is on and manual live tune is off
+      use_learning = self.live_learning_enabled and not self.live_tune_enabled
+      if use_learning:
+        learned_friction, learned_kf_factor = self.learner.get_learned_params()
+        effective_friction = learned_friction
+        effective_kf = self.kf * learned_kf_factor
+      else:
+        effective_friction = self.friction
+        effective_kf = self.kf
 
       # Use delayed curvature for error calculation (delay compensation)
       low_speed_factor = interp(CS.vEgo, [0, 10, 20], [500, 500, 200])
@@ -235,7 +254,7 @@ class LatControlTorque(LatControl):
 
       ff = desired_lateral_accel - params.roll * ACCELERATION_DUE_TO_GRAVITY
       # Jerk term: anticipate steering transitions
-      ff += JERK_GAIN * desired_lateral_jerk
+      ff += self.jerk_gain * desired_lateral_jerk
       # Convert friction into lateral accel units for feedforward
       friction_compensation = interp(apply_deadzone(error, lateral_accel_deadzone), [-FRICTION_THRESHOLD, FRICTION_THRESHOLD], [-effective_friction, effective_friction])
       ff += friction_compensation / effective_kf
@@ -245,8 +264,9 @@ class LatControlTorque(LatControl):
                                       speed=CS.vEgo,
                                       freeze_integrator=freeze_integrator)
 
-      # Feed data to live learner
-      self.learner.add_point(active, CS.steeringPressed, CS.vEgo, output_torque, actual_lateral_accel)
+      # Feed data to live learner (only when learning is enabled)
+      if use_learning:
+        self.learner.add_point(active, CS.steeringPressed, CS.vEgo, output_torque, actual_lateral_accel)
 
       pid_log.active = True
       pid_log.p = self.pid.p

@@ -105,6 +105,8 @@ void  CLateralControlGroup::FrameTORQUE(QVBoxLayout *layout)
     layout->addWidget(new TorqueFriction());
     layout->addWidget(new TorqueUseAngle());
     layout->addWidget(new TorqueAngDeadZone());
+    layout->addWidget(new TorqueJerkGain());
+    layout->addWidget(new TorqueLiveLearning());
 }
 
 
@@ -5032,6 +5034,75 @@ void TorqueAngDeadZone::refresh() {
   int valuei = strs.toInt();
   float valuef = valuei * 0.1;
   QString valuefs = QString::number(valuef);
+  label.setText(QString::fromStdString(valuefs.toStdString()));
+}
+
+TorqueJerkGain::TorqueJerkGain() : AbstractControl(
+  tr("Jerk 피드포워드"),
+  tr("조향 전환 시(직진→커브, 커브→직진) 응답 속도를 조절합니다. "
+     "값이 클수록 커브 진입/탈출 시 핸들이 빠르게 반응하지만, 너무 크면 진동이 발생할 수 있습니다. "
+     "stock openpilot에서 백포트된 기능으로, desired lateral accel의 변화율을 피드포워드에 반영합니다. "
+     "0이면 비활성화. 권장 범위: 3~8 (0.03~0.08)."),
+  "../assets/offroad/icon_shell.png") {
+
+  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+  label.setStyleSheet("color: #e0e879");
+  hlayout->addWidget(&label);
+
+  btnminus.setStyleSheet(R"(
+    padding: 0;
+    border-radius: 50px;
+    font-size: 35px;
+    font-weight: 500;
+    color: #E4E4E4;
+    background-color: #393939;
+  )");
+  btnplus.setStyleSheet(R"(
+    padding: 0;
+    border-radius: 50px;
+    font-size: 35px;
+    font-weight: 500;
+    color: #E4E4E4;
+    background-color: #393939;
+  )");
+  btnminus.setFixedSize(150, 100);
+  btnplus.setFixedSize(150, 100);
+  btnminus.setText("－");
+  btnplus.setText("＋");
+  hlayout->addWidget(&btnminus);
+  hlayout->addWidget(&btnplus);
+
+  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
+    auto str = QString::fromStdString(params.get("TorqueJerkGain"));
+    int value = str.toInt();
+    value = value - 1;
+    if (value <= 0) {
+      value = 0;
+    }
+    QString values = QString::number(value);
+    params.put("TorqueJerkGain", values.toStdString());
+    refresh();
+  });
+
+  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
+    auto str = QString::fromStdString(params.get("TorqueJerkGain"));
+    int value = str.toInt();
+    value = value + 1;
+    if (value >= 20) {
+      value = 20;
+    }
+    QString values = QString::number(value);
+    params.put("TorqueJerkGain", values.toStdString());
+    refresh();
+  });
+  refresh();
+}
+
+void TorqueJerkGain::refresh() {
+  auto strs = QString::fromStdString(params.get("TorqueJerkGain"));
+  int valuei = strs.toInt();
+  float valuef = valuei * 0.01;
+  QString valuefs = QString::number(valuef, 'f', 2);
   label.setText(QString::fromStdString(valuefs.toStdString()));
 }
 
