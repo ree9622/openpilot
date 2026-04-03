@@ -483,8 +483,13 @@ class NaviControl():
           self.t_interval = int(interp(dRel, [15, 50], [7, ttime])) if not (self.onSpeedControl or self.curvSpeedControl or self.cut_in) else 10 if CS.is_set_speed_in_mph else 7
           self.cutInControl = False
         else:
+          # Lead decelerating: use shorter button interval when close
           var_speed = min(CS.CP.vFuture, navi_speed)
-          self.t_interval = randint(10, 12) if CS.is_set_speed_in_mph else randint(7, 9)
+          if dRel < 25 and vRel < (-6 if CS.is_set_speed_in_mph else -10):
+            # Very close + fast approach → fastest button pressing
+            self.t_interval = randint(5, 7)
+          else:
+            self.t_interval = randint(10, 12) if CS.is_set_speed_in_mph else randint(7, 9)
           self.cut_in_run_timer = 0
           self.cutInControl = False
       elif self.lead_0.status and CS.CP.vFuture < min_control_speed:
