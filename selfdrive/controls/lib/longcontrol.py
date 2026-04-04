@@ -64,8 +64,9 @@ class LongControl():
     self.long_plan_source = ""
 
     self.candidate = candidate
-    self.long_log = Params().get_bool("LongLogDisplay")
-    self.stopping_dist = int(Params().get("StoppingDist", encoding="utf8")) * 0.1
+    self._params = Params()
+    self.long_log = self._params.get_bool("LongLogDisplay")
+    self.stopping_dist = int(self._params.get("StoppingDist", encoding="utf8")) * 0.1
 
     self.vRel_prev = 0
     self.decel_damping = 1.0
@@ -84,7 +85,7 @@ class LongControl():
     self.loc_timer += 1
     if self.loc_timer > 100:
       self.loc_timer = 0
-      self.long_log = Params().get_bool("LongLogDisplay")
+      self.long_log = self._params.get_bool("LongLogDisplay")
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Interp control trajectory
     speeds = long_plan.speeds

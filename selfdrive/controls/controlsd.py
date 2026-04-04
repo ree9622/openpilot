@@ -84,7 +84,8 @@ class Controls:
     if TICI:
       self.camera_packets.append("wideRoadCameraState")
 
-    params = Params()
+    self.params = Params()
+    params = self.params
     self.joystick_mode = params.get_bool("JoystickDebugMode")
     joystick_packet = ['testJoystick'] if self.joystick_mode else []
 
@@ -381,26 +382,30 @@ class Controls:
 
     self.second += DT_CTRL
     if self.second > 1.0:
-      self.map_enabled = Params().get_bool("OpkrMapEnable")
-      self.live_sr = Params().get_bool("OpkrLiveSteerRatio")
-      self.live_sr_percent = int(Params().get("LiveSteerRatioPercent", encoding="utf8"))
+      p = self.params
+      self.map_enabled = p.get_bool("OpkrMapEnable")
+      self.live_sr = p.get_bool("OpkrLiveSteerRatio")
+      self.live_sr_percent = int(p.get("LiveSteerRatioPercent", encoding="utf8"))
       # E2ELongAlert
-      if Params().get_bool("E2ELong") and self.e2e_long_alert_prev:
+      e2e_long = p.get_bool("E2ELong")
+      if e2e_long and self.e2e_long_alert_prev:
         self.events.add(EventName.e2eLongAlert)
         self.e2e_long_alert_prev = not self.e2e_long_alert_prev
-      elif not Params().get_bool("E2ELong"):
+      elif not e2e_long:
         self.e2e_long_alert_prev = True
       # UnSleep Mode Alert
-      if Params().get_bool("OpkrMonitoringMode") and self.unsleep_mode_alert_prev:
+      monitoring_mode = p.get_bool("OpkrMonitoringMode")
+      if monitoring_mode and self.unsleep_mode_alert_prev:
         self.events.add(EventName.unSleepMode)
         self.unsleep_mode_alert_prev = not self.unsleep_mode_alert_prev
-      elif not Params().get_bool("OpkrMonitoringMode"):
+      elif not monitoring_mode:
         self.unsleep_mode_alert_prev = True
       # DoNotDisturb Mode Alert
-      if Params().get("CommaStockUI", encoding="utf8") == "2" and self.donotdisturb_mode_alert_prev:
+      stock_ui = p.get("CommaStockUI", encoding="utf8")
+      if stock_ui == "2" and self.donotdisturb_mode_alert_prev:
         self.events.add(EventName.doNotDisturb)
         self.donotdisturb_mode_alert_prev = not self.donotdisturb_mode_alert_prev
-      elif not Params().get("CommaStockUI", encoding="utf8") == "2":
+      elif stock_ui != "2":
         self.donotdisturb_mode_alert_prev = True
       self.second = 0.0
 
@@ -560,6 +565,14 @@ class Controls:
 
     return CS
 
+  def _log_cruise_change(self, reason, new_val, CS=None):
+    """v_cruise 변경 시 로그 기록 (변경이 있을 때만)"""
+    if abs(new_val - self.v_cruise_kph) > 0.5:
+      extra = ""
+      if CS is not None:
+        extra = f" vEgo={CS.vEgo*3.6:.1f} vSetDis={CS.vSetDis} btn={CS.cruiseButtons}"
+      cloudlog.warning(f"CRUISE_CHG [{reason}] {self.v_cruise_kph:.0f}->{new_val:.0f}{extra}")
+
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
 
@@ -577,6 +590,7 @@ class Controls:
         self.cruise_road_limit_spd_switch_prev = 0
 
       if self.variable_cruise and CS.cruiseState.modeSel != 0 and self.CP.vCruisekph > t_speed:
+        self._log_cruise_change("vCruisekph_auto", self.CP.vCruisekph, CS)
         self.v_cruise_kph = self.CP.vCruisekph
         self.v_cruise_kph_last = self.v_cruise_kph
       elif CS.cruiseButtons == Buttons.RES_ACCEL and self.variable_cruise and CS.cruiseState.modeSel != 0 and CS.vSetDis < (self.v_cruise_kph_last - 1):
@@ -584,6 +598,7 @@ class Controls:
           self.cruise_road_limit_spd_switch = False
           self.cruise_road_limit_spd_switch_prev = self.sm['liveENaviData'].roadLimitSpeed
         self.v_cruise_kph_set_timer = 30
+        self._log_cruise_change("RES_restore_last", self.v_cruise_kph_last, CS)
         self.v_cruise_kph = self.v_cruise_kph_last
         if round(CS.vSetDis)-1 > self.v_cruise_kph:
           self.v_cruise_kph = round(CS.vSetDis)
@@ -601,6 +616,7 @@ class Controls:
           self.cruise_road_limit_spd_switch = False
           self.cruise_road_limit_spd_switch_prev = self.sm['liveENaviData'].roadLimitSpeed
         self.v_cruise_kph_set_timer = 30
+        self._log_cruise_change("RES_current_speed", round(CS.vEgo*m_unit), CS)
         self.v_cruise_kph = round(CS.vEgo*m_unit)
         if round(CS.vSetDis)-1 > self.v_cruise_kph:
           self.v_cruise_kph = round(CS.vSetDis)
@@ -619,6 +635,7 @@ class Controls:
         elif self.cruise_road_limit_spd_enabled and CS.cruiseButtons == Buttons.RES_ACCEL:
           self.cruise_road_limit_spd_switch_prev = self.sm['liveENaviData'].roadLimitSpeed
           self.cruise_road_limit_spd_switch = False
+        self._log_cruise_change("btn_cruiseState", round(CS.cruiseState.speed * m_unit), CS)
         self.v_cruise_kph = round(CS.cruiseState.speed * m_unit)
         self.v_cruise_kph_last = self.v_cruise_kph
         if self.osm_speedlimit_enabled or self.navi_selection in (3,5):
@@ -632,10 +649,13 @@ class Controls:
       elif CS.driverAcc and self.variable_cruise and (self.cruise_over_maxspeed or self.cruise_road_limit_spd_enabled) and t_speed <= self.v_cruise_kph < round(CS.vEgo*m_unit):
         self.cruise_road_limit_spd_switch_prev = self.sm['liveENaviData'].roadLimitSpeed
         self.cruise_road_limit_spd_switch = False
+        self._log_cruise_change("driverAcc_override", round(CS.vEgo*m_unit), CS)
         self.v_cruise_kph = round(CS.vEgo*m_unit)
         self.v_cruise_kph_last = self.v_cruise_kph
       elif self.variable_cruise and self.cruise_road_limit_spd_enabled and int(self.v_cruise_kph) != (int(self.sm['liveENaviData'].roadLimitSpeed) + self.cruise_road_limit_spd_offset) and 1 < int(self.sm['liveENaviData'].roadLimitSpeed) < 150 and self.cruise_road_limit_spd_switch:
-        self.v_cruise_kph = int(self.sm['liveENaviData'].roadLimitSpeed) + self.cruise_road_limit_spd_offset
+        _new_spd = int(self.sm['liveENaviData'].roadLimitSpeed) + self.cruise_road_limit_spd_offset
+        self._log_cruise_change("road_limit_navi", _new_spd, CS)
+        self.v_cruise_kph = _new_spd
         self.v_cruise_kph_last = self.v_cruise_kph
       elif self.variable_cruise and CS.cruiseState.modeSel != 0 and (self.osm_speedlimit_enabled or (self.map_enabled and self.navi_selection == 3) or self.navi_selection == 5) and self.osm_waze_off_spdlimit_init:
         if self.map_enabled and self.navi_selection == 3:
@@ -667,12 +687,15 @@ class Controls:
           self.pause_spdlimit = True
         elif osm_waze_speedlimit != self.v_cruise_kph:
           if self.map_enabled and self.navi_selection == 3 and self.sm['liveNaviData'].wazeRoadSpeedLimit > 9:
+            self._log_cruise_change("osm_waze_limit", osm_waze_speedlimit, CS)
             self.v_cruise_kph = osm_waze_speedlimit
             self.v_cruise_kph_last = self.v_cruise_kph
           elif self.navi_selection == 5 and self.sm['liveENaviData'].wazeRoadSpeedLimit > 9:
+            self._log_cruise_change("enavi_waze_limit", osm_waze_speedlimit, CS)
             self.v_cruise_kph = osm_waze_speedlimit
             self.v_cruise_kph_last = self.v_cruise_kph
           elif self.osm_speedlimit_enabled and self.sm['liveMapData'].speedLimit > 9:
+            self._log_cruise_change("osm_map_limit", osm_waze_speedlimit, CS)
             self.v_cruise_kph = osm_waze_speedlimit
             self.v_cruise_kph_last = self.v_cruise_kph
       elif self.variable_cruise and CS.cruiseState.modeSel != 0 and not (self.osm_speedlimit_enabled or (self.map_enabled and self.navi_selection == 3) or self.navi_selection == 5):
@@ -712,12 +735,15 @@ class Controls:
         osm_waze_speedlimit = int(interp(osm_waze_speedlimit_, self.osm_waze_custom_spdlimit_c, self.osm_waze_custom_spdlimit_t))
       if osm_waze_speedlimit != self.v_cruise_kph:
         if self.map_enabled and self.navi_selection == 3 and self.sm['liveNaviData'].wazeRoadSpeedLimit > 9:
+          self._log_cruise_change("standby_waze", osm_waze_speedlimit, CS)
           self.v_cruise_kph = osm_waze_speedlimit
           self.v_cruise_kph_last = self.v_cruise_kph
         elif self.navi_selection == 5 and self.sm['liveENaviData'].wazeRoadSpeedLimit > 9:
+          self._log_cruise_change("standby_enavi", osm_waze_speedlimit, CS)
           self.v_cruise_kph = osm_waze_speedlimit
           self.v_cruise_kph_last = self.v_cruise_kph
         elif self.osm_speedlimit_enabled and self.sm['liveMapData'].speedLimit > 9:
+          self._log_cruise_change("standby_osm", osm_waze_speedlimit, CS)
           self.v_cruise_kph = osm_waze_speedlimit
           self.v_cruise_kph_last = self.v_cruise_kph
 
@@ -1190,6 +1216,11 @@ class Controls:
     self.prof.checkpoint("Sent")
 
     self.update_button_timers(CS.buttonEvents)
+
+    # 느린 프레임 감지 (10ms 초과 시 경고)
+    elapsed = sec_since_boot() - start_time
+    if elapsed > 0.010:
+      cloudlog.warning(f"SLOW_FRAME elapsed={elapsed*1000:.1f}ms")
 
   def controlsd_thread(self):
     while True:
