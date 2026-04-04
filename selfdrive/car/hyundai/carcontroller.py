@@ -295,6 +295,11 @@ class CarController():
     self.vRel = self.sm['radarState'].leadOne.vRel #EON Lead
     self.yRel = self.sm['radarState'].leadOne.yRel #EON Lead
 
+    # longitudinalPlan 기본값은 [0.] (원소 1개) — 발행 전 [12] 접근 시 IndexError 방지
+    lp = self.sm['longitudinalPlan']
+    self.lp_e2eX12 = lp.e2eX[12] if len(lp.e2eX) > 12 else 0.
+    self.lp_stopLine12 = lp.stopLine[12] if len(lp.stopLine) > 12 else 200.
+
     if self.enable_steer_more and self.to_avoid_lkas_fault_enabled and abs(CS.out.steeringAngleDeg) > self.to_avoid_lkas_fault_max_angle*0.5 and \
      CS.out.vEgo <= 12.5 and not (0 <= self.driver_steering_torque_above_timer < 100):
       self.steerMax = self.steerMax_Max
@@ -593,7 +598,7 @@ class CarController():
       if not self.cruise_gap_adjusting:
         if not self.gap_by_spd_on or not self.gap_by_spd_on_sw_trg:
           if 0 < CS.lead_distance <= 149 and CS.lead_objspd < 0 and self.try_early_stop and CS.cruiseGapSet != 4.0 and CS.clu_Vanz > 30 and \
-           0 < self.sm['longitudinalPlan'].e2eX[12] < 120 and (self.sm['longitudinalPlan'].stopLine[12] < 100 or CS.lead_objspd < -4):
+           0 < self.lp_e2eX12 < 120 and (self.lp_stopLine12 < 100 or CS.lead_objspd < -4):
             if not self.try_early_stop_retrieve:
               self.try_early_stop_org_gap = CS.cruiseGapSet
             self.try_early_stop_retrieve = True
@@ -618,7 +623,7 @@ class CarController():
                 self.switch_timer = randint(30, 36)
           elif 0 < CS.lead_distance <= 149 and not self.cruise_gap_set_init and self.try_early_stop and self.try_early_stop_retrieve and \
            CS.cruiseGapSet != self.try_early_stop_org_gap and \
-           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.sm['longitudinalPlan'].e2eX[12] > 50 and self.sm['longitudinalPlan'].stopLine[12] > 100 and CS.clu_Vanz > 20)):
+           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.lp_e2eX12 > 50 and self.lp_stopLine12 > 100 and CS.clu_Vanz > 20)):
             if self.switch_timer > 0:
               self.switch_timer -= 1
             else:
@@ -634,7 +639,7 @@ class CarController():
             self.resume_cnt = 0
         elif self.gap_by_spd_on and self.gap_by_spd_on_sw_trg:
           if 0 < CS.lead_distance <= 149 and CS.lead_objspd < 0 and self.try_early_stop and CS.cruiseGapSet != 4.0 and CS.clu_Vanz > 30 and \
-           0 < self.sm['longitudinalPlan'].e2eX[12] < 120 and (self.sm['longitudinalPlan'].stopLine[12] < 100 or CS.lead_objspd < -4):
+           0 < self.lp_e2eX12 < 120 and (self.lp_stopLine12 < 100 or CS.lead_objspd < -4):
             if not self.try_early_stop_retrieve:
               self.try_early_stop_org_gap = CS.cruiseGapSet
             self.try_early_stop_retrieve = True
@@ -718,7 +723,7 @@ class CarController():
             self.gap_by_spd_gap4 = False
           elif 0 < CS.lead_distance <= 149 and not self.cruise_gap_set_init and self.try_early_stop and self.try_early_stop_retrieve and \
            CS.cruiseGapSet != self.try_early_stop_org_gap and \
-           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.sm['longitudinalPlan'].e2eX[12] > 50 and self.sm['longitudinalPlan'].stopLine[12] > 100 and CS.clu_Vanz > 20)):
+           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.lp_e2eX12 > 50 and self.lp_stopLine12 > 100 and CS.clu_Vanz > 20)):
             if self.switch_timer > 0:
               self.switch_timer -= 1
             else:
@@ -737,7 +742,7 @@ class CarController():
             self.gap_by_spd_gap4 = False
           elif 0 < CS.lead_distance <= 149 and not self.cruise_gap_set_init and self.try_early_stop and self.try_early_stop_retrieve and \
            CS.cruiseGapSet == self.try_early_stop_org_gap and \
-           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.sm['longitudinalPlan'].e2eX[12] > 50 and self.sm['longitudinalPlan'].stopLine[12] > 100 and CS.clu_Vanz > 20)):
+           (CS.clu_Vanz <= 20 or (CS.lead_objspd >= 0 and self.lp_e2eX12 > 50 and self.lp_stopLine12 > 100 and CS.clu_Vanz > 20)):
             self.try_early_stop_retrieve = False
             self.gap_by_spd_gap1 = False
             self.gap_by_spd_gap2 = False
@@ -820,12 +825,12 @@ class CarController():
             self.e2e_standstill_stat = False
             self.e2e_standstill_timer = 0
             self.e2e_standstill_timer_buf = 0
-          elif self.e2e_standstill_stat and self.sm['longitudinalPlan'].e2eX[12] > 30 and self.sm['longitudinalPlan'].stopLine[12] < 10 and CS.clu_Vanz == 0:
+          elif self.e2e_standstill_stat and self.lp_e2eX12 > 30 and self.lp_stopLine12 < 10 and CS.clu_Vanz == 0:
             self.e2e_standstill = True
             self.e2e_standstill_stat = False
             self.e2e_standstill_timer = 0
             self.e2e_standstill_timer_buf += 300
-          elif 0 < self.sm['longitudinalPlan'].e2eX[12] < 10 and self.sm['longitudinalPlan'].stopLine[12] < 10 and CS.clu_Vanz == 0:
+          elif 0 < self.lp_e2eX12 < 10 and self.lp_stopLine12 < 10 and CS.clu_Vanz == 0:
             self.e2e_standstill_timer += 1
             if self.e2e_standstill_timer > (300 + self.e2e_standstill_timer_buf):
               self.e2e_standstill_timer = 101
