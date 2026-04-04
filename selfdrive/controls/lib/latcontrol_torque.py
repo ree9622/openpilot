@@ -2,6 +2,7 @@ import math
 from collections import deque
 
 from cereal import log
+
 from common.numpy_fast import interp
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from selfdrive.controls.lib.pid import PIDController
@@ -29,8 +30,6 @@ FRICTION_THRESHOLD = 0.2
 # Default loaded from Params("TorqueJerkGain"), fallback to 0.05
 JERK_GAIN_DEFAULT = 0.05
 
-# Delay compensation: compare measurement against past request
-# instead of current request, eliminating phase lag oscillation
 DT_CTRL = 0.01  # 100Hz control loop
 
 # Live torque learning constants (adapted from stock torqued)
@@ -150,13 +149,6 @@ class LatControlTorque(LatControl):
 
     self.lt_timer = 0
 
-    # --- Delay compensation buffer ---
-    # Buffer past desired curvature requests; compare measurement against
-    # what was requested steerActuatorDelay seconds ago to eliminate phase lag
-    delay_seconds = CP.steerActuatorDelay
-    self.delay_frames = max(1, int(round(delay_seconds / DT_CTRL)))
-    self.curvature_request_buffer = deque([0.0] * (self.delay_frames + 1), maxlen=200)
-
     # --- Jerk feedforward state ---
     self.prev_desired_lateral_accel = 0.0
     # Read jerk gain from Params (int * 0.01), fallback to default
@@ -223,12 +215,6 @@ class LatControlTorque(LatControl):
       actual_lateral_accel = actual_curvature * CS.vEgo ** 2
       lateral_accel_deadzone = curvature_deadzone * CS.vEgo ** 2
 
-      # --- Delay compensation ---
-      # Buffer curvature, pull the request from steerActuatorDelay seconds ago
-      self.curvature_request_buffer.append(desired_curvature)
-      delayed_curvature = self.curvature_request_buffer[-self.delay_frames - 1]
-      delayed_lateral_accel = delayed_curvature * CS.vEgo ** 2
-
       # --- Jerk feedforward ---
       # Rate of change of desired lateral accel improves transient response
       desired_lateral_jerk = (desired_lateral_accel - self.prev_desired_lateral_accel) / DT_CTRL
@@ -245,9 +231,8 @@ class LatControlTorque(LatControl):
         effective_friction = self.friction
         effective_kf = self.kf
 
-      # Use delayed curvature for error calculation (delay compensation)
       low_speed_factor = interp(CS.vEgo, [0, 10, 20], [500, 500, 200])
-      setpoint = delayed_lateral_accel + low_speed_factor * delayed_curvature
+      setpoint = desired_lateral_accel + low_speed_factor * desired_curvature
       measurement = actual_lateral_accel + low_speed_factor * actual_curvature
       error = setpoint - measurement
       pid_log.error = error

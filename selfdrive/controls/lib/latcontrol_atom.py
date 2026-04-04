@@ -1,6 +1,5 @@
 import math
 import numpy as np
-from collections import deque
 
 from cereal import log
 from common.realtime import DT_CTRL
@@ -41,11 +40,7 @@ class LatCtrlToqATOM(LatControlTorque):
     self.live_tune_enabled = False
     self.lt_timer = 0
 
-    # Delay compensation buffer (from enhanced LatControlTorque)
-    from selfdrive.controls.lib.latcontrol_torque import DT_CTRL as DT, LiveTorqueLearner, JERK_GAIN_DEFAULT
-    delay_seconds = CP.steerActuatorDelay
-    self.delay_frames = max(1, int(round(delay_seconds / DT)))
-    self.curvature_request_buffer = deque([0.0] * (self.delay_frames + 1), maxlen=200)
+    from selfdrive.controls.lib.latcontrol_torque import LiveTorqueLearner, JERK_GAIN_DEFAULT
 
     # Jerk feedforward state
     self.prev_desired_lateral_accel = 0.0

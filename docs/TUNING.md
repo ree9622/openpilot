@@ -41,7 +41,6 @@ friction = TorqueFriction * 0.001         # 80 * 0.001 = 0.080
 
 | 기능 | Param | 기본값 | 설명 |
 |------|-------|--------|------|
-| **지연보상** | SteerActuatorDelayAdj | 30 (→0.30초) | 과거 요청 vs 현재 측정 비교로 위상 지연 제거 |
 | **Jerk FF** | TorqueJerkGain | 5 (→0.05) | 조향 전환 시 응답 개선 (d(lat_accel)/dt) |
 | **라이브학습** | TorqueLiveLearning | 1 (on) | friction/kf를 실시간 선형회귀로 학습 |
 
