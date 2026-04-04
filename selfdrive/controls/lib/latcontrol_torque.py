@@ -59,6 +59,7 @@ class LiveTorqueLearner:
     self.lat_accels = deque(maxlen=2000)
     self.valid_count = 0
     self.engaged_frames = 0
+    self.recompute_timer = 0
 
   def add_point(self, active, steer_override, v_ego, output_torque, actual_lat_accel):
     """Collect a data point if conditions are met."""
@@ -80,16 +81,22 @@ class LiveTorqueLearner:
     self.lat_accels.append(actual_lat_accel)
     self.valid_count += 1
 
+    # Recompute regression every 100 frames (~1 second)
+    self.recompute_timer += 1
+    if self.recompute_timer >= 100:
+      self.recompute_timer = 0
+      self._recompute()
+
   def get_learned_params(self):
-    """Compute learned friction and kf adjustment.
+    """Return cached learned friction and kf_factor. Regression runs in _recompute()."""
+    return self.friction, self.kf_factor
 
-    Returns (friction, kf_factor) where kf_factor is a multiplier
-    on the base kf value. Returns initial values if not enough data.
-    """
+  def _recompute(self):
+    """Run linear regression to update friction and kf_factor.
+    Called periodically (every ~1s), not every frame."""
     if self.valid_count < LEARNING_MIN_POINTS:
-      return self.friction, self.kf_factor
+      return
 
-    # Simple linear regression: lat_accel = slope * torque + intercept
     n = len(self.torques)
     sum_t = sum(self.torques)
     sum_a = sum(self.lat_accels)
@@ -98,25 +105,22 @@ class LiveTorqueLearner:
 
     denom = n * sum_tt - sum_t * sum_t
     if abs(denom) < 1e-10:
-      return self.friction, self.kf_factor
+      return
 
     slope = (n * sum_ta - sum_t * sum_a) / denom
 
-    # Friction from residual spread (std of residuals perpendicular to fit)
+    # Friction from residual spread
     intercept = (sum_a - slope * sum_t) / n
-    residuals = [abs(a - slope * t - intercept) for t, a in zip(self.torques, self.lat_accels)]
-    mean_residual = sum(residuals) / n
-    # Friction estimate: 1.5x mean absolute residual (matches stock FRICTION_FACTOR)
-    new_friction = mean_residual * 1.5
+    residuals_sum = sum(abs(a - slope * t - intercept) for t, a in zip(self.torques, self.lat_accels))
+    new_friction = (residuals_sum / n) * 1.5
 
     # Clamp to +-30% of initial values
     new_friction = max(self.initial_friction * (1 - LEARNING_MAX_DRIFT),
                        min(self.initial_friction * (1 + LEARNING_MAX_DRIFT), new_friction))
 
-    # kf adjustment: if slope differs from expected, adjust kf proportionally
-    if abs(slope) > 0.1:
-      # Higher slope means car is more responsive → need less gain
-      new_kf_factor = 1.0 / max(0.5, min(2.0, abs(slope)))
+    # kf adjustment: only when slope is positive and meaningful
+    if slope > 0.1:
+      new_kf_factor = 1.0 / min(2.0, slope)
       new_kf_factor = max(1 - LEARNING_MAX_DRIFT, min(1 + LEARNING_MAX_DRIFT, new_kf_factor))
     else:
       new_kf_factor = self.kf_factor
@@ -124,8 +128,6 @@ class LiveTorqueLearner:
     # Smooth update with exponential moving average
     self.friction = LEARNING_DECAY * self.friction + (1 - LEARNING_DECAY) * new_friction
     self.kf_factor = LEARNING_DECAY * self.kf_factor + (1 - LEARNING_DECAY) * new_kf_factor
-
-    return self.friction, self.kf_factor
 
 
 class LatControlTorque(LatControl):
@@ -217,7 +219,9 @@ class LatControlTorque(LatControl):
 
       # --- Jerk feedforward ---
       # Rate of change of desired lateral accel improves transient response
+      # Clamp jerk to prevent spikes from model output flicker
       desired_lateral_jerk = (desired_lateral_accel - self.prev_desired_lateral_accel) / DT_CTRL
+      desired_lateral_jerk = max(-5.0, min(5.0, desired_lateral_jerk))
       self.prev_desired_lateral_accel = desired_lateral_accel
 
       # --- Live torque learning ---
