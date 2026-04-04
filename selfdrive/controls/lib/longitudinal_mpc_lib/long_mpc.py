@@ -205,19 +205,20 @@ class LongitudinalMpc:
 
     self.TR = 1.45
     self.dynamic_TR = 0
-    self.cruise_gap1 = int(Params().get("CruiseGap1", encoding="utf8")) * 0.1
-    self.cruise_gap2 = int(Params().get("CruiseGap2", encoding="utf8")) * 0.1
-    self.cruise_gap3 = int(Params().get("CruiseGap3", encoding="utf8")) * 0.1
-    self.cruise_gap4 = int(Params().get("CruiseGap4", encoding="utf8")) * 0.1
+    self._params = Params()
+    self.cruise_gap1 = int(self._params.get("CruiseGap1", encoding="utf8")) * 0.1
+    self.cruise_gap2 = int(self._params.get("CruiseGap2", encoding="utf8")) * 0.1
+    self.cruise_gap3 = int(self._params.get("CruiseGap3", encoding="utf8")) * 0.1
+    self.cruise_gap4 = int(self._params.get("CruiseGap4", encoding="utf8")) * 0.1
 
-    self.dynamic_tr_spd = list(map(float, Params().get("DynamicTRSpd", encoding="utf8").split(',')))
-    self.dynamic_tr_set = list(map(float, Params().get("DynamicTRSet", encoding="utf8").split(',')))
-    self.dynamic_TR_mode = int(Params().get("DynamicTRGap", encoding="utf8"))
-    self.custom_tr_enabled = Params().get_bool("CustomTREnabled")
+    self.dynamic_tr_spd = list(map(float, self._params.get("DynamicTRSpd", encoding="utf8").split(',')))
+    self.dynamic_tr_set = list(map(float, self._params.get("DynamicTRSet", encoding="utf8").split(',')))
+    self.dynamic_TR_mode = int(self._params.get("DynamicTRGap", encoding="utf8"))
+    self.custom_tr_enabled = self._params.get_bool("CustomTREnabled")
 
-    self.ms_to_spd = CV.MS_TO_KPH if Params().get_bool("IsMetric") else CV.MS_TO_MPH
+    self.ms_to_spd = CV.MS_TO_KPH if self._params.get_bool("IsMetric") else CV.MS_TO_MPH
 
-    self.stop_line = Params().get_bool("ShowStopLine")
+    self.stop_line = self._params.get_bool("ShowStopLine")
 
     self.lo_timer = 0 
 
@@ -352,9 +353,9 @@ class LongitudinalMpc:
     self.lo_timer += 1
     if self.lo_timer > 200:
       self.lo_timer = 0
-      self.e2e = Params().get_bool("E2ELong")
-      self.dynamic_TR_mode = int(Params().get("DynamicTRGap", encoding="utf8"))
-      self.custom_tr_enabled = Params().get_bool("CustomTREnabled")
+      self.e2e = self._params.get_bool("E2ELong")
+      self.dynamic_TR_mode = int(self._params.get("DynamicTRGap", encoding="utf8"))
+      self.custom_tr_enabled = self._params.get_bool("CustomTREnabled")
 
     xforward = ((v[1:] + v[:-1]) / 2) * (T_IDXS[1:] - T_IDXS[:-1])
     x = np.cumsum(np.insert(xforward, 0, x[0]))

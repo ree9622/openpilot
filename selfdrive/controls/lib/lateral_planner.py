@@ -38,7 +38,8 @@ class LateralPlanner:
     self.lat_mpc = LateralMpc()
     self.reset_mpc(np.zeros(4))
 
-    self.laneless_mode = int(Params().get("LanelessMode", encoding="utf8"))
+    self._params = Params()
+    self.laneless_mode = int(self._params.get("LanelessMode", encoding="utf8"))
     self.laneless_mode_status = False
     self.laneless_mode_status_buffer = False
 
@@ -82,8 +83,8 @@ class LateralPlanner:
   def update(self, sm, CP):
     self.second += DT_MDL
     if self.second > 1.0:
-      self.use_lanelines = not Params().get_bool("EndToEndToggle")
-      self.laneless_mode = int(Params().get("LanelessMode", encoding="utf8"))
+      self.use_lanelines = not self._params.get_bool("EndToEndToggle")
+      self.laneless_mode = int(self._params.get("LanelessMode", encoding="utf8"))
       self.second = 0.0
 
     self.v_cruise_kph = sm['controlsState'].vCruise

@@ -52,18 +52,18 @@ class DesireHelper:
     self.prev_one_blinker = False
     self.desire = log.LateralPlan.Desire.none
 
-    self.lane_change_delay = int(Params().get("OpkrAutoLaneChangeDelay", encoding="utf8"))
+    _p = Params()
+    self.lane_change_delay = int(_p.get("OpkrAutoLaneChangeDelay", encoding="utf8"))
     self.lane_change_auto_delay = 0.0 if self.lane_change_delay == 0 else 0.2 if self.lane_change_delay == 1 else 0.5 if self.lane_change_delay == 2 \
      else 1.0 if self.lane_change_delay == 3 else 1.5 if self.lane_change_delay == 4 else 2.0
 
     self.lane_change_wait_timer = 0.0
 
-    lc_params = Params()
-    self.lane_change_adjust = [int(lc_params.get("LCTimingFactor30", encoding="utf8")) * 0.01, int(lc_params.get("LCTimingFactor60", encoding="utf8")) * 0.01,
-     int(lc_params.get("LCTimingFactor80", encoding="utf8")) * 0.01, int(lc_params.get("LCTimingFactor110", encoding="utf8")) * 0.01]
+    self.lane_change_adjust = [int(_p.get("LCTimingFactor30", encoding="utf8")) * 0.01, int(_p.get("LCTimingFactor60", encoding="utf8")) * 0.01,
+     int(_p.get("LCTimingFactor80", encoding="utf8")) * 0.01, int(_p.get("LCTimingFactor110", encoding="utf8")) * 0.01]
     self.lane_change_adjust_vel = [30*CV.KPH_TO_MS, 60*CV.KPH_TO_MS, 80*CV.KPH_TO_MS, 110*CV.KPH_TO_MS]
     self.lane_change_adjust_new = 2
-    self.lane_change_adjust_enable = lc_params.get_bool("LCTimingFactorEnable")
+    self.lane_change_adjust_enable = _p.get_bool("LCTimingFactorEnable")
 
     self.output_scale = 0.0
     self.ready_to_change = False
