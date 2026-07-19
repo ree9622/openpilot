@@ -369,7 +369,12 @@ class CarInterface(CarInterfaceBase):
       self.CP.standStill = True
     else:
       self.CP.standStill = False
-    if self.CC.v_cruise_kph_auto_res > (20 if self.CS.is_set_speed_in_mph else 30):
+    min_set_speed = 20 if self.CS.is_set_speed_in_mph else 30
+    if self.CC.NC.driver_set_speed_target >= min_set_speed:
+      # A physical UP/DOWN press rebases the driver's maximum. Feed the same
+      # target to controlsd until controlsState has adopted it.
+      self.CP.vCruisekph = self.CC.NC.driver_set_speed_target
+    elif self.CC.v_cruise_kph_auto_res > min_set_speed:
       self.CP.vCruisekph = self.CC.v_cruise_kph_auto_res
     else:
       self.CP.vCruisekph = 0

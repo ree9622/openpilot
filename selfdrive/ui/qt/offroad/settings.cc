@@ -91,7 +91,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     {
       "OpkrEnableLogger",
       tr("Enable Driving Log Record"),
-      tr("Record the driving log locally for data analysis. Only loggers are activated and not uploaded to the server."),
+      tr("Record driving logs locally for data analysis. This setting does not enable uploads; keep the upload setting off for local-only storage. Changes take effect after restarting the device."),
       "../assets/offroad/icon_shell.png",
     },
     {
@@ -119,7 +119,77 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     //toggle->setEnabled(true);
     //connect(parent, &SettingsWindow::offroadTransition, toggle, &ParamControl::setEnabled);
     addItem(toggle);
+    if (param == "OpkrEnableLogger") {
+      connect(toggle, &ToggleControl::toggleFlipped, [=](bool) {
+        ConfirmationDialog::alert(tr("Restart the device to apply the driving log setting."), this);
+      });
+    }
   }
+
+  auto delete_logs_btn = new ButtonControl(
+    tr("Delete All Driving Logs"), tr("DELETE"),
+    tr("Delete locally stored driving logs. Boot and crash diagnostics are kept during manual deletion."));
+  auto delete_logs_process = new QProcess(delete_logs_btn);
+  delete_logs_process->setProcessChannelMode(QProcess::MergedChannels);
+  delete_logs_btn->setEnabled(Params().getBool("IsOffroad"));
+
+  connect(delete_logs_btn, &ButtonControl::clicked, [=]() {
+    if (!Params().getBool("IsOffroad")) {
+      ConfirmationDialog::alert(tr("Driving logs can only be deleted while the vehicle is off."), this);
+      return;
+    }
+    if (!ConfirmationDialog::confirm(tr("Delete all locally stored driving logs? This cannot be undone."), this)) return;
+
+    // The vehicle state can change while the confirmation dialog is open.
+    if (!Params().getBool("IsOffroad")) {
+      ConfirmationDialog::alert(tr("Driving logs can only be deleted while the vehicle is off."), this);
+      return;
+    }
+
+    delete_logs_btn->setEnabled(false);
+    delete_logs_process->setWorkingDirectory("/data/openpilot");
+    delete_logs_process->start("python3", QStringList() << "-m" << "selfdrive.loggerd.clear_logs");
+  });
+
+  connect(delete_logs_process,
+          static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+          [=](int exit_code, QProcess::ExitStatus exit_status) {
+    const bool offroad = Params().getBool("IsOffroad");
+    delete_logs_btn->setEnabled(offroad);
+    if (!offroad) return;
+
+    const QString output = QString::fromUtf8(delete_logs_process->readAll());
+    if (exit_status != QProcess::NormalExit || (exit_code != 0 && exit_code != 2)) {
+      ConfirmationDialog::alert(tr("Some driving logs could not be deleted. Restart the device and try again."), this);
+    } else if (exit_code == 2) {
+      ConfirmationDialog::alert(tr("Log deletion stopped because the vehicle is no longer off."), this);
+    } else if (output.contains("DELETED=0")) {
+      const QString message = output.contains("LOCKED=0")
+                                ? tr("No inactive driving logs found.")
+                                : tr("No inactive driving logs found. Active logs were kept.");
+      ConfirmationDialog::alert(message, this);
+    } else if (!output.contains("LOCKED=0")) {
+      ConfirmationDialog::alert(tr("Inactive driving logs were deleted. Active logs were kept."), this);
+    } else {
+      ConfirmationDialog::alert(tr("Driving logs deleted."), this);
+    }
+  });
+
+  connect(delete_logs_process, &QProcess::errorOccurred, [=](QProcess::ProcessError error) {
+    if (error == QProcess::FailedToStart && Params().getBool("IsOffroad")) {
+      delete_logs_btn->setEnabled(true);
+      ConfirmationDialog::alert(tr("Could not start driving log deletion."), this);
+    }
+  });
+
+  connect(parent, &SettingsWindow::offroadTransition, [=](bool offroad) {
+    if (!offroad && delete_logs_process->state() != QProcess::NotRunning) {
+      delete_logs_process->terminate();
+    } else if (delete_logs_process->state() == QProcess::NotRunning) {
+      delete_logs_btn->setEnabled(offroad);
+    }
+  });
+  addItem(delete_logs_btn);
 }
 
 DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
@@ -485,14 +555,6 @@ UIPanel::UIPanel(QWidget *parent) : QFrame(parent) {
     }
   });
   layout->addWidget(recorddelbtn);
-  const char* realdata_del = "rm -rf /data/media/0/realdata/*";
-  auto realdatadelbtn = new ButtonControl(tr("Delete All Driving Logs"), tr("RUN"));
-  QObject::connect(realdatadelbtn, &ButtonControl::clicked, [=]() {
-    if (ConfirmationDialog::confirm(tr("Delete all saved driving logs. Do you want to proceed?"), this)){
-      std::system(realdata_del);
-    }
-  });
-  layout->addWidget(realdatadelbtn);
   layout->addWidget(new MonitoringMode());
   layout->addWidget(new MonitorEyesThreshold());
   layout->addWidget(new NormalEyesThreshold());
