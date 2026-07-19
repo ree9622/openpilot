@@ -4,6 +4,7 @@
 
 | 커밋 | 날짜 | 설명 |
 |------|------|------|
+| `fbd05ec` | 2026-07-19 | 크루즈 버튼 프레임 처리 및 차량/OpenPilot 최고 설정 속도 동기화 수정 |
 | `ea526c5` | 2026-04-03 | CLAUDE.md: scons 빌드 필수 규칙 추가 |
 | `ae9b816` | 2026-04-03 | params.cc: TorqueJerkGain/TorqueLiveLearning 화이트리스트 등록 |
 | `e8ed7ff` | 2026-04-03 | UI: Jerk 피드포워드 슬라이더 + 라이브 토크 학습 토글 추가 |
