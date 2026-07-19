@@ -77,6 +77,7 @@ class ManagerProcess(ABC):
 
   last_watchdog_time = 0
   watchdog_max_dt = None
+  watchdog_offroad_only = False
   watchdog_seen = False
   shutting_down = False
 
@@ -106,8 +107,8 @@ class ManagerProcess(ABC):
     dt = sec_since_boot() - self.last_watchdog_time / 1e9
 
     if dt > self.watchdog_max_dt:
-      # Only restart while offroad for now
-      if self.watchdog_seen and ENABLE_WATCHDOG:
+      can_restart = not self.watchdog_offroad_only or not started
+      if self.watchdog_seen and ENABLE_WATCHDOG and can_restart:
         cloudlog.error(f"Watchdog timeout for {self.name} (exitcode {self.proc.exitcode}) restarting ({started=})")
         self.restart()
     else:
@@ -182,7 +183,8 @@ class ManagerProcess(ABC):
 
 
 class NativeProcess(ManagerProcess):
-  def __init__(self, name, cwd, cmdline, enabled=True, persistent=False, driverview=False, unkillable=False, sigkill=False, watchdog_max_dt=None):
+  def __init__(self, name, cwd, cmdline, enabled=True, persistent=False, driverview=False, unkillable=False, sigkill=False,
+               watchdog_max_dt=None, watchdog_offroad_only=False):
     self.name = name
     self.cwd = cwd
     self.cmdline = cmdline
@@ -192,6 +194,7 @@ class NativeProcess(ManagerProcess):
     self.unkillable = unkillable
     self.sigkill = sigkill
     self.watchdog_max_dt = watchdog_max_dt
+    self.watchdog_offroad_only = watchdog_offroad_only
 
   def prepare(self) -> None:
     pass
