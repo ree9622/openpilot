@@ -84,8 +84,18 @@ class CarState(CarStateBase):
   def cruise_speed_button(self):
     self.sm.update(0)
     set_speed_kph = self.cruise_set_speed_kph
-    if 1 < round(self.sm['controlsState'].vCruise) < 255:
-      set_speed_kph = round(self.sm['controlsState'].vCruise)
+    controls_v_cruise = round(self.sm['controlsState'].vCruise)
+    min_set_speed = 20 if self.is_set_speed_in_mph else 30
+
+    # This is the driver's canonical maximum while cruise is available. Do not
+    # overwrite it every frame with controlsState.vCruise: variable cruise can
+    # temporarily lower the stock SCC target for a lead car, curve, or camera.
+    # Only seed it when there is no valid local value yet.
+    if not min_set_speed <= set_speed_kph < 255:
+      valid_sources = [speed for speed in (controls_v_cruise, round(self.VSetDis))
+                       if min_set_speed <= speed < 255]
+      set_speed_kph = max(valid_sources) if valid_sources else min_set_speed
+      self.cruise_set_speed_kph = set_speed_kph
 
     if self.cruise_buttons:
       self.cruise_buttons_time += 1

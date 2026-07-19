@@ -65,9 +65,12 @@ if EnableLogger:
     PythonProcess("logmessaged", "selfdrive.logmessaged", persistent=True),
     PythonProcess("tombstoned", "selfdrive.tombstoned", enabled=not PC, persistent=True),
   ]
+if EnableLogger or EnableUploader:
+  # Local logs must stay bounded when uploads are disabled, while uploader-only
+  # setups must still be able to retire old routes after uploading them.
+  procs += [PythonProcess("deleter", "selfdrive.loggerd.deleter", persistent=True)]
 if EnableUploader:
   procs += [
-    PythonProcess("deleter", "selfdrive.loggerd.deleter", persistent=True),
     PythonProcess("uploader", "selfdrive.loggerd.uploader", persistent=True),
   ]
 if EnableOSM:

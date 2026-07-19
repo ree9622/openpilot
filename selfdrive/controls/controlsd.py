@@ -590,7 +590,7 @@ class Controls:
         self.cruise_road_limit_spd_switch = True
         self.cruise_road_limit_spd_switch_prev = 0
 
-      if self.variable_cruise and CS.cruiseState.modeSel != 0 and self.CP.vCruisekph > t_speed:
+      if self.variable_cruise and CS.cruiseState.modeSel != 0 and self.CP.vCruisekph >= t_speed:
         self._log_cruise_change("vCruisekph_auto", self.CP.vCruisekph, CS)
         self.v_cruise_kph = self.CP.vCruisekph
         self.v_cruise_kph_last = self.v_cruise_kph
