@@ -782,16 +782,6 @@
         <source>Delete all saved recorded files. Do you want to proceed?</source>
         <translation>녹화된 영상 파일을 모두 삭제하시겠습니까?</translation>
     </message>
-    <message>
-        <location filename="../qt/offroad/settings.cc" line="489"/>
-        <source>Delete All Driving Logs</source>
-        <translation>주행로그 전부 삭제</translation>
-    </message>
-    <message>
-        <location filename="../qt/offroad/settings.cc" line="491"/>
-        <source>Delete all saved driving logs. Do you want to proceed?</source>
-        <translation>저장된 주행로그를 전부 삭제하시겠습니까?</translation>
-    </message>
 </context>
 <context>
     <name>TogglesPanel</name>
@@ -882,8 +872,8 @@
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="94"/>
-        <source>Record the driving log locally for data analysis. Only loggers are activated and not uploaded to the server.</source>
-        <translation>데이터 분석을 위해 주행 기록(카바나)을 로컬에 저장하세요. 로거만 활성화되고 서버에 업로드되지 않습니다. 이 기능은 리소스를 많이 사용하므로 데이터 분석외 평시에는 해당기능을 끄는것을 권장합니다.</translation>
+        <source>Record the driving log locally for data analysis. Only loggers are activated and not uploaded to the server. Changes take effect after restarting the device.</source>
+        <translation>데이터 분석을 위해 주행 기록을 로컬에 저장합니다. 서버에는 업로드하지 않습니다. 변경 내용은 단말을 재부팅한 후 적용됩니다.</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="99"/>
@@ -904,6 +894,58 @@
         <location filename="../qt/offroad/settings.cc" line="111"/>
         <source>openpilot will disable the car&apos;s radar and will take over control of gas and brakes. Warning: this disables AEB!</source>
         <translation>오픈파일럿이 차량의 레이더를 비활성화하고 가속 및 제동을 직접 제어합니다. ⚠️ 경고: 이 설정을 켜면 차량의 자동긴급제동(AEB) 기능이 비활성화됩니다! 설정 변경은 차량 시동을 끈 후 적용됩니다.</translation>
+    </message>
+    <message>
+        <source>Restart the device to apply the driving log setting.</source>
+        <translation>주행 로그 설정을 적용하려면 단말을 재부팅하세요.</translation>
+    </message>
+    <message>
+        <source>Delete All Driving Logs</source>
+        <translation>저장된 주행 로그 삭제</translation>
+    </message>
+    <message>
+        <source>DELETE</source>
+        <translation>삭제</translation>
+    </message>
+    <message>
+        <source>Delete locally stored driving logs. Boot and crash diagnostics are kept during manual deletion.</source>
+        <translation>로컬에 저장된 주행 로그를 삭제합니다. 수동 삭제 시 부팅 및 오류 진단 로그는 보존됩니다.</translation>
+    </message>
+    <message>
+        <source>Driving logs can only be deleted while the vehicle is off.</source>
+        <translation>주행 로그는 차량이 꺼진 상태에서만 삭제할 수 있습니다.</translation>
+    </message>
+    <message>
+        <source>Delete all locally stored driving logs? This cannot be undone.</source>
+        <translation>저장된 주행 로그를 모두 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다.</translation>
+    </message>
+    <message>
+        <source>Some driving logs could not be deleted. Restart the device and try again.</source>
+        <translation>일부 주행 로그를 삭제하지 못했습니다. 단말을 재부팅한 뒤 다시 시도하세요.</translation>
+    </message>
+    <message>
+        <source>Driving logs deleted.</source>
+        <translation>주행 로그를 삭제했습니다.</translation>
+    </message>
+    <message>
+        <source>Log deletion stopped because the vehicle is no longer off.</source>
+        <translation>차량이 더 이상 꺼진 상태가 아니어서 로그 삭제를 중단했습니다.</translation>
+    </message>
+    <message>
+        <source>No inactive driving logs found.</source>
+        <translation>삭제할 비활성 주행 로그가 없습니다.</translation>
+    </message>
+    <message>
+        <source>No inactive driving logs found. Active logs were kept.</source>
+        <translation>삭제할 비활성 주행 로그가 없습니다. 현재 기록 중인 로그는 보존했습니다.</translation>
+    </message>
+    <message>
+        <source>Inactive driving logs were deleted. Active logs were kept.</source>
+        <translation>비활성 주행 로그를 삭제했습니다. 현재 기록 중인 로그는 보존했습니다.</translation>
+    </message>
+    <message>
+        <source>Could not start driving log deletion.</source>
+        <translation>주행 로그 삭제 작업을 시작하지 못했습니다.</translation>
     </message>
 </context>
 <context>

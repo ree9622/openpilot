@@ -41,6 +41,16 @@ class TestDeleterBackoff(unittest.TestCase):
     self.assertEqual(exit_event.waits, [.1])
     rmtree_mock.assert_called_once()
 
+  @patch("selfdrive.loggerd.deleter.listdir_by_creation", return_value=["route"])
+  @patch("selfdrive.loggerd.deleter.get_available_percent", return_value=0)
+  @patch("selfdrive.loggerd.deleter.get_available_bytes", return_value=0)
+  @patch("selfdrive.loggerd.deleter.os.listdir", side_effect=FileNotFoundError)
+  def test_route_removed_by_manual_cleanup_does_not_crash(self, listdir_mock, bytes_mock,
+                                                           percent_mock, routes_mock):
+    exit_event = ExitAfterFirstWait()
+    deleter_thread(exit_event)
+    self.assertEqual(exit_event.waits, [30])
+
 
 if __name__ == "__main__":
   unittest.main()

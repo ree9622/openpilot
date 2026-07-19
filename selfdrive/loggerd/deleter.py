@@ -24,10 +24,10 @@ def deleter_thread(exit_event):
       for delete_dir in dirs:
         delete_path = os.path.join(ROOT, delete_dir)
 
-        if any(name.endswith(".lock") for name in os.listdir(delete_path)):
-          continue
-
         try:
+          if any(name.endswith(".lock") for name in os.listdir(delete_path)):
+            continue
+
           cloudlog.info(f"deleting {delete_path}")
           if os.path.isfile(delete_path):
             os.remove(delete_path)
