@@ -7,7 +7,7 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.car.hyundai.values import DBC, STEER_THRESHOLD, FEATURES, EV_CAR, HYBRID_CAR, Buttons, CAR
 from selfdrive.car.interfaces import CarStateBase
 from common.numpy_fast import interp
-from common.params import Params
+from common.params import Params, put_nonblocking
 
 GearShifter = car.CarState.GearShifter
 
@@ -71,6 +71,14 @@ class CarState(CarStateBase):
     self.prev_cruise_btn = False
     self.acc_active = False
     self.cruise_set_speed_kph = 0
+    self.cruise_set_speed_kph_base = 0.0
+    self.cruise_set_speed_is_mph = None
+    saved_cruise_speed = params.get("OpkrCruiseMaxSpeed", encoding="utf8")
+    if saved_cruise_speed is not None:
+      try:
+        self.cruise_set_speed_kph_base = float(saved_cruise_speed)
+      except ValueError:
+        pass
     self.cruise_set_mode = int(params.get("CruiseStatemodeSelInit", encoding="utf8"))
     self.gasPressed = False
 
@@ -80,9 +88,34 @@ class CarState(CarStateBase):
   def set_cruise_speed(self, set_speed):
     self.cruise_set_speed_kph = set_speed
 
+  def restore_cruise_speed_unit(self):
+    if self.cruise_set_speed_is_mph == self.is_set_speed_in_mph:
+      return
+
+    self.cruise_set_speed_is_mph = self.is_set_speed_in_mph
+    if self.cruise_set_speed_kph_base > 0:
+      display_speed = self.cruise_set_speed_kph_base * CV.KPH_TO_MPH if self.is_set_speed_in_mph else \
+                      self.cruise_set_speed_kph_base
+      self.cruise_set_speed_kph = round(display_speed)
+
+  def persist_cruise_speed(self):
+    min_set_speed = 20 if self.is_set_speed_in_mph else 30
+    if not (self.cruise_active or self.cruise_buttons in (Buttons.RES_ACCEL, Buttons.SET_DECEL)) or \
+       not min_set_speed <= self.cruise_set_speed_kph < 255:
+      return
+
+    speed_kph = self.cruise_set_speed_kph * CV.MPH_TO_KPH if self.is_set_speed_in_mph else \
+                self.cruise_set_speed_kph
+    if abs(speed_kph - self.cruise_set_speed_kph_base) > 0.25:
+      self.cruise_set_speed_kph_base = speed_kph
+      # Physical button edges are infrequent; keep the 100 Hz control path
+      # non-blocking while preserving the maximum across a controlsd restart.
+      put_nonblocking("OpkrCruiseMaxSpeed", "{:.3f}".format(speed_kph))
+
   #@staticmethod
   def cruise_speed_button(self):
     self.sm.update(0)
+    self.restore_cruise_speed_unit()
     set_speed_kph = self.cruise_set_speed_kph
     controls_v_cruise = round(self.sm['controlsState'].vCruise)
     min_set_speed = 20 if self.is_set_speed_in_mph else 30
@@ -246,6 +279,7 @@ class CarState(CarStateBase):
     ret.cruiseState.modeSel = self.cruise_set_mode
 
     set_speed = self.cruise_speed_button()
+    self.persist_cruise_speed()
     if ret.cruiseState.enabled and (self.brake_check == False or self.cancel_check == False):
       speed_conv = CV.MPH_TO_MS if self.is_set_speed_in_mph else CV.KPH_TO_MS
       ret.cruiseState.speed = set_speed * speed_conv if not self.no_radar else \

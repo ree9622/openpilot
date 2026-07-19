@@ -20,6 +20,7 @@ def deleter_thread(exit_event):
     if out_of_percent or out_of_bytes:
       # remove the earliest directory we can
       dirs = sorted(listdir_by_creation(ROOT), key=lambda x: x in DELETE_LAST)
+      deleted = False
       for delete_dir in dirs:
         delete_path = os.path.join(ROOT, delete_dir)
 
@@ -32,10 +33,13 @@ def deleter_thread(exit_event):
             os.remove(delete_path)
           else:
             shutil.rmtree(delete_path)
+          deleted = True
           break
         except OSError:
           cloudlog.exception(f"issue deleting {delete_path}")
-      exit_event.wait(.1)
+      # Delete quickly while reclaimable routes remain. If all routes are
+      # locked, back off to avoid a 10 Hz directory scan on C2 hardware.
+      exit_event.wait(.1 if deleted else 30)
     else:
       exit_event.wait(30)
 

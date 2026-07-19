@@ -81,9 +81,6 @@ class NaviControl():
     self.faststart = False
     self.safetycam_speed = 0
 
-    # cruise_max_speed: 운전자가 설정한 원래 크루즈 속도를 보존
-    # variable cruise가 선행차 추종 중 v_cruise_kph를 낮춰도 이 값은 유지됨
-    self.cruise_max_speed = 0
     self.driver_set_speed_target = 0  # controlsd와 동기화할 운전자 최고속도
     self.driver_set_speed_target_frames = 0
 
@@ -121,7 +118,6 @@ class NaviControl():
       return
 
     if min_set_speed <= target_speed < 255:
-      self.cruise_max_speed = target_speed
       self.driver_set_speed_target = target_speed
       self.driver_set_speed_target_frames = 0
 
@@ -585,19 +581,11 @@ class NaviControl():
       self.speedlimit_decel_off = self.params.get_bool("SpeedLimitDecelOff")
     cruiseState_speed = round(self.sm['controlsState'].vCruise)
     min_set_speed = 20 if CS.is_set_speed_in_mph else 30
-    # cruise 비활성화 시 max speed 리셋
+    canonical_speed = round(CS.cruise_set_speed_kph)
     if not CS.cruise_active:
-      self.cruise_max_speed = 0
       self.driver_set_speed_target = 0
       self.driver_set_speed_target_frames = 0
     else:
-      # CarState owns the driver's maximum. NaviControl only consumes it as the
-      # cap and hands physical button changes to controlsd.
-      canonical_speed = round(CS.cruise_set_speed_kph)
-      if min_set_speed <= canonical_speed < 255:
-        self.cruise_max_speed = canonical_speed
-      elif self.cruise_max_speed == 0 and round(CS.VSetDis) >= min_set_speed:
-        self.cruise_max_speed = round(CS.VSetDis)
       self.update_driver_set_speed(CS)
       if self.driver_set_speed_target:
         self.driver_set_speed_target_frames += 1
@@ -616,7 +604,8 @@ class NaviControl():
     elif CS.cruise_active:
       # Keep the old OPKR over-speed behavior, but never let an automatic
       # controlsState change silently rewrite the driver's canonical maximum.
-      effective_cruise_speed = max(cruiseState_speed, self.cruise_max_speed)
+      effective_cruise_speed = max(cruiseState_speed, canonical_speed) if \
+                               min_set_speed <= canonical_speed < 255 else cruiseState_speed
 
       kph_set_vEgo = self.get_navi_speed(self.sm, CS, effective_cruise_speed) # camspeed
       if self.osm_speedlimit_enabled and self.map_spdlimit_offset_option == 2:
