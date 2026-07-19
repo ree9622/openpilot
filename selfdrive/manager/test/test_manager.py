@@ -3,10 +3,12 @@ import os
 import signal
 import time
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import selfdrive.manager.manager as manager
 from selfdrive.hardware import EON, TICI, HARDWARE
-from selfdrive.manager.process import DaemonProcess
+from selfdrive.manager.process import DaemonProcess, NativeProcess
 from selfdrive.manager.process_config import managed_processes
 
 os.environ['FAKEUPLOAD'] = "1"
@@ -35,6 +37,36 @@ class TestManager(unittest.TestCase):
       manager.main()
       t = time.monotonic() - start
       assert t < MAX_STARTUP_TIME, f"startup took {t}s, expected <{MAX_STARTUP_TIME}s"
+
+  def test_ui_watchdog_config(self):
+    expected_watchdog = 10 if EON else (5 if TICI else None)
+    self.assertEqual(managed_processes['ui'].watchdog_max_dt, expected_watchdog)
+    self.assertEqual(managed_processes['ui'].watchdog_offroad_only, EON)
+
+  def test_offroad_only_watchdog_policy(self):
+    proc = NativeProcess("test", ".", ["true"], watchdog_max_dt=1, watchdog_offroad_only=True)
+    proc.proc = SimpleNamespace(pid=123, exitcode=None)
+    proc.watchdog_seen = True
+    with patch("builtins.open", side_effect=OSError), \
+         patch("selfdrive.manager.process.sec_since_boot", return_value=10), \
+         patch("selfdrive.manager.process.ENABLE_WATCHDOG", True), \
+         patch.object(proc, "restart") as restart_mock:
+      proc.check_watchdog(started=True)
+      restart_mock.assert_not_called()
+
+      proc.check_watchdog(started=False)
+      restart_mock.assert_called_once()
+
+  def test_default_watchdog_onroad_policy_is_preserved(self):
+    proc = NativeProcess("test", ".", ["true"], watchdog_max_dt=1)
+    proc.proc = SimpleNamespace(pid=123, exitcode=None)
+    proc.watchdog_seen = True
+    with patch("builtins.open", side_effect=OSError), \
+         patch("selfdrive.manager.process.sec_since_boot", return_value=10), \
+         patch("selfdrive.manager.process.ENABLE_WATCHDOG", True), \
+         patch.object(proc, "restart") as restart_mock:
+      proc.check_watchdog(started=True)
+      restart_mock.assert_called_once()
 
   # ensure all processes exit cleanly
   def test_clean_exit(self):
