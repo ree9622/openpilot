@@ -872,8 +872,8 @@
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="94"/>
-        <source>Record the driving log locally for data analysis. Only loggers are activated and not uploaded to the server. Changes take effect after restarting the device.</source>
-        <translation>데이터 분석을 위해 주행 기록을 로컬에 저장합니다. 서버에는 업로드하지 않습니다. 변경 내용은 단말을 재부팅한 후 적용됩니다.</translation>
+        <source>Record driving logs locally for data analysis. This setting does not enable uploads; keep the upload setting off for local-only storage. Changes take effect after restarting the device.</source>
+        <translation>데이터 분석을 위해 주행 로그를 로컬에 저장합니다. 이 설정은 업로드를 켜지 않으며, 로컬에만 보관하려면 업로드 설정을 꺼 두세요. 변경 내용은 단말을 재부팅한 후 적용됩니다.</translation>
     </message>
     <message>
         <location filename="../qt/offroad/settings.cc" line="99"/>

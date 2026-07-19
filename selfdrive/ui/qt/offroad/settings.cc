@@ -91,7 +91,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     {
       "OpkrEnableLogger",
       tr("Enable Driving Log Record"),
-      tr("Record the driving log locally for data analysis. Only loggers are activated and not uploaded to the server. Changes take effect after restarting the device."),
+      tr("Record driving logs locally for data analysis. This setting does not enable uploads; keep the upload setting off for local-only storage. Changes take effect after restarting the device."),
       "../assets/offroad/icon_shell.png",
     },
     {
