@@ -81,12 +81,8 @@ class NaviControl():
     self.faststart = False
     self.safetycam_speed = 0
 
-    # cruise_max_speed: 운전자가 설정한 원래 크루즈 속도를 보존
-    # variable cruise가 선행차 추종 중 v_cruise_kph를 낮춰도 이 값은 유지됨
-    self.cruise_max_speed = 0
-    self.no_lead_frames = 0  # 선행차 미감지 연속 프레임 수
-    self.prev_cruiseState_speed = 0  # 이전 프레임 cruiseState_speed (하락 감지용)
-    self.driver_set_speed_pending = False  # 운전자 버튼 입력 후 MAX 동기화 대기
+    self.driver_set_speed_target = 0  # controlsd와 동기화할 운전자 최고속도
+    self.driver_set_speed_target_frames = 0
 
   def update_lateralPlan(self):
     self.sm.update(0)
@@ -101,6 +97,29 @@ class NaviControl():
     else:
       return 1
     return 0
+
+  def update_driver_set_speed(self, CS):
+    min_set_speed = 20 if CS.is_set_speed_in_mph else 30
+    button_pressed = CS.cruise_buttons in (Buttons.RES_ACCEL, Buttons.SET_DECEL) and \
+                     CS.prev_cruise_buttons != CS.cruise_buttons
+
+    if button_pressed:
+      if CS.cruise_buttons == Buttons.RES_ACCEL and CS.cruiseState_standstill:
+        return
+      # CarState has already applied the current physical button edge to the
+      # canonical maximum. Reuse that result so 1/5-unit and mph behavior have
+      # one owner instead of being reimplemented in NaviControl.
+      target_speed = round(CS.cruise_set_speed_kph)
+    elif CS.cruise_buttons in (Buttons.RES_ACCEL, Buttons.SET_DECEL) and CS.cruise_buttons_time >= 60:
+      # Long presses are controlled by the cluster. Adopt its final value so
+      # the car, controlsState, and preserved maximum converge after release.
+      target_speed = round(CS.VSetDis)
+    else:
+      return
+
+    if min_set_speed <= target_speed < 255:
+      self.driver_set_speed_target = target_speed
+      self.driver_set_speed_target_frames = 0
 
   # buttn acc,dec control
   def switch(self, seq_cmd):
@@ -560,51 +579,33 @@ class NaviControl():
     if self.na_timer > 100:
       self.na_timer = 0
       self.speedlimit_decel_off = self.params.get_bool("SpeedLimitDecelOff")
-    # cruise 비활성화 시 max speed 리셋
+    cruiseState_speed = round(self.sm['controlsState'].vCruise)
+    min_set_speed = 20 if CS.is_set_speed_in_mph else 30
+    canonical_speed = round(CS.cruise_set_speed_kph)
     if not CS.cruise_active:
-      self.cruise_max_speed = 0
-      self.no_lead_frames = 0
-      self.prev_cruiseState_speed = 0
-      self.driver_set_speed_pending = False
-    elif CS.cruise_buttons in (Buttons.RES_ACCEL, Buttons.SET_DECEL):
-      # 시스템이 전송한 버튼은 수신 CAN에 loopback되지 않는다. 여기서 보이는
-      # 입력은 운전자 조작이므로, 버튼 해제 후 차량과 MAX 속도를 다시 맞춘다.
-      self.driver_set_speed_pending = True
+      self.driver_set_speed_target = 0
+      self.driver_set_speed_target_frames = 0
+    else:
+      self.update_driver_set_speed(CS)
+      if self.driver_set_speed_target:
+        self.driver_set_speed_target_frames += 1
+        if CS.cruise_buttons == Buttons.NONE and cruiseState_speed == self.driver_set_speed_target:
+          # controlsd now owns the same user maximum. The SCC button manager can
+          # resume later with its separate dynamic target after button_status().
+          self.driver_set_speed_target = 0
+          self.driver_set_speed_target_frames = 0
+        elif self.driver_set_speed_target_frames > 100:
+          self.driver_set_speed_target = 0
+          self.driver_set_speed_target_frames = 0
+
     btn_signal = None
     if not self.button_status(CS):  # 사용자가 버튼클릭하면 일정시간 기다린다.
       pass
     elif CS.cruise_active:
-      cruiseState_speed = round(self.sm['controlsState'].vCruise)
-      min_set_speed = 20 if CS.is_set_speed_in_mph else 30
-
-      # cruise_max_speed 추적: 운전자가 설정한 최대 속도 보존
-      # 버튼 입력 중에는 variable cruise를 0.8초 대기한다. 그 사이 controlsd가
-      # 실제 버튼 결과를 반영하므로, 선행차 유무와 관계없이 운전자 변경을 확정한다.
-      if self.driver_set_speed_pending and min_set_speed <= cruiseState_speed < 255:
-        self.cruise_max_speed = cruiseState_speed
-        self.driver_set_speed_pending = False
-      # 최초 활성화 시 차량 SCC의 실제 설정 속도(VSetDis)로 초기화
-      if self.cruise_max_speed == 0 and round(CS.VSetDis) >= min_set_speed:
-        self.cruise_max_speed = round(CS.VSetDis)
-      # cruiseState_speed가 올라가면 max도 올라감 (운전자가 RES_ACCEL 또는 시스템 복귀)
-      if min_set_speed <= cruiseState_speed < 255:
-        if cruiseState_speed > self.cruise_max_speed:
-          self.cruise_max_speed = cruiseState_speed
-      # 선행차 유무 추적 (radarState는 이미 sm.update로 갱신됨)
-      has_lead = self.sm['radarState'].leadOne.status or self.sm['radarState'].leadTwo.status
-      if not has_lead:
-        self.no_lead_frames += 1
-      else:
-        self.no_lead_frames = 0
-      # 선행차 없는 상태가 1초 이상 지속 + cruiseState_speed가 직전 프레임보다 내려감
-      # → 운전자가 직접 SET_DECEL을 눌러 낮춘 것으로 판단 → cruise_max_speed도 낮춤
-      # (회복 중에는 속도가 올라가므로 이 조건에 걸리지 않음)
-      if self.no_lead_frames > 100 and cruiseState_speed < self.prev_cruiseState_speed and cruiseState_speed < self.cruise_max_speed:
-        self.cruise_max_speed = cruiseState_speed
-      self.prev_cruiseState_speed = cruiseState_speed
-
-      # cruiseState_speed가 오염되었을 수 있으므로, cruise_max_speed와 비교하여 복구 대상 결정
-      effective_cruise_speed = max(cruiseState_speed, self.cruise_max_speed)
+      # Keep the old OPKR over-speed behavior, but never let an automatic
+      # controlsState change silently rewrite the driver's canonical maximum.
+      effective_cruise_speed = max(cruiseState_speed, canonical_speed) if \
+                               min_set_speed <= canonical_speed < 255 else cruiseState_speed
 
       kph_set_vEgo = self.get_navi_speed(self.sm, CS, effective_cruise_speed) # camspeed
       if self.osm_speedlimit_enabled and self.map_spdlimit_offset_option == 2:
@@ -619,7 +620,7 @@ class NaviControl():
       else:
         self.ctrl_speed = navi_speed # navi speed
 
-      # print('self.ctrl_speed={}  cruiseState_speed={}'.format(self.ctrl_speed, cruiseState_speed))      
+      # print('self.ctrl_speed={}  cruiseState_speed={}'.format(self.ctrl_speed, cruiseState_speed))
 
       btn_signal = self.ascc_button_control(CS, self.ctrl_speed)
 

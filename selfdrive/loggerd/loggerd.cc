@@ -203,6 +203,9 @@ void loggerd_thread() {
   }
 
   LoggerdState s;
+  // A forced loggerd exit can leave route locks behind. This runs before the
+  // new route opens, so every lock present here is stale.
+  clear_locks(LOG_ROOT);
   // init logger
   logger_init(&s.logger, "rlog", true);
   logger_rotate(&s);

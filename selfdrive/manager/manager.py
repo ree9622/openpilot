@@ -31,10 +31,17 @@ def manager_init() -> None:
   # update system time from panda
   set_time(cloudlog)
 
-  # save boot log
-  # subprocess.call("./bootlog", cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
-
   params = Params()
+
+  # Keep a lightweight Android/launch snapshot when route logging is enabled.
+  # The matching deleter process bounds bootlog storage on C2, while failures
+  # here must never prevent manager from starting.
+  if params.get_bool("OpkrEnableLogger"):
+    try:
+      subprocess.call("./bootlog", cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
+    except OSError:
+      cloudlog.exception("failed to write bootlog")
+
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
