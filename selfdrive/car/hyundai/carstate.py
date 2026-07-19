@@ -163,6 +163,12 @@ class CarState(CarStateBase):
 
     ret = car.CarState.new_message()
 
+    # Read the current button state before deriving cruiseState.speed. The old
+    # ordering processed the previous frame's button and then published the
+    # current button, so a quick tap could be released before vCruise saw it.
+    self.cruise_main_button = cp.vl["CLU11"]["CF_Clu_CruiseSwMain"]
+    self.cruise_buttons = cp.vl["CLU11"]["CF_Clu_CruiseSwState"]
+
     ret.doorOpen = any([cp.vl["CGW1"]["CF_Gway_DrvDrSw"], cp.vl["CGW1"]["CF_Gway_AstDrSw"],
                         cp.vl["CGW2"]["CF_Gway_RLDrSw"], cp.vl["CGW2"]["CF_Gway_RRDrSw"]])
 
@@ -237,9 +243,6 @@ class CarState(CarStateBase):
     else:
       ret.cruiseState.speed = 0
 
-    self.cruise_main_button = cp.vl["CLU11"]["CF_Clu_CruiseSwMain"]
-    self.prev_cruise_buttons = self.cruise_buttons
-    self.cruise_buttons = cp.vl["CLU11"]["CF_Clu_CruiseSwState"]
     ret.cruiseButtons = self.cruise_buttons
 
     if self.prev_gap_button != self.cruise_buttons:
