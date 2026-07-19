@@ -86,6 +86,7 @@ class NaviControl():
     self.cruise_max_speed = 0
     self.no_lead_frames = 0  # 선행차 미감지 연속 프레임 수
     self.prev_cruiseState_speed = 0  # 이전 프레임 cruiseState_speed (하락 감지용)
+    self.driver_set_speed_pending = False  # 운전자 버튼 입력 후 MAX 동기화 대기
 
   def update_lateralPlan(self):
     self.sm.update(0)
@@ -563,18 +564,30 @@ class NaviControl():
     if not CS.cruise_active:
       self.cruise_max_speed = 0
       self.no_lead_frames = 0
+      self.prev_cruiseState_speed = 0
+      self.driver_set_speed_pending = False
+    elif CS.cruise_buttons in (Buttons.RES_ACCEL, Buttons.SET_DECEL):
+      # 시스템이 전송한 버튼은 수신 CAN에 loopback되지 않는다. 여기서 보이는
+      # 입력은 운전자 조작이므로, 버튼 해제 후 차량과 MAX 속도를 다시 맞춘다.
+      self.driver_set_speed_pending = True
     btn_signal = None
     if not self.button_status(CS):  # 사용자가 버튼클릭하면 일정시간 기다린다.
       pass
     elif CS.cruise_active:
       cruiseState_speed = round(self.sm['controlsState'].vCruise)
+      min_set_speed = 20 if CS.is_set_speed_in_mph else 30
 
       # cruise_max_speed 추적: 운전자가 설정한 최대 속도 보존
+      # 버튼 입력 중에는 variable cruise를 0.8초 대기한다. 그 사이 controlsd가
+      # 실제 버튼 결과를 반영하므로, 선행차 유무와 관계없이 운전자 변경을 확정한다.
+      if self.driver_set_speed_pending and min_set_speed <= cruiseState_speed < 255:
+        self.cruise_max_speed = cruiseState_speed
+        self.driver_set_speed_pending = False
       # 최초 활성화 시 차량 SCC의 실제 설정 속도(VSetDis)로 초기화
-      if self.cruise_max_speed == 0 and round(CS.VSetDis) > 30:
+      if self.cruise_max_speed == 0 and round(CS.VSetDis) >= min_set_speed:
         self.cruise_max_speed = round(CS.VSetDis)
       # cruiseState_speed가 올라가면 max도 올라감 (운전자가 RES_ACCEL 또는 시스템 복귀)
-      if 30 < cruiseState_speed < 255:
+      if min_set_speed <= cruiseState_speed < 255:
         if cruiseState_speed > self.cruise_max_speed:
           self.cruise_max_speed = cruiseState_speed
       # 선행차 유무 추적 (radarState는 이미 sm.update로 갱신됨)
