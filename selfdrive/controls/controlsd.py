@@ -194,6 +194,9 @@ class Controls:
     self.events_prev = []
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
+    self.slow_frame_count = 0
+    self.slow_frame_worst = 0.0
+    self.slow_frame_logged_t = 0.0
     self.drive_stats = DriveStats()
     self.button_timers = {ButtonEvent.Type.decelCruise: 0, ButtonEvent.Type.accelCruise: 0}
     self.last_actuators = car.CarControl.Actuators.new_message()
@@ -1218,10 +1221,17 @@ class Controls:
 
     self.update_button_timers(CS.buttonEvents)
 
-    # 느린 프레임 감지 (10ms 초과 시 경고)
+    # 느린 프레임 감지 (10ms 초과 시 경고). 프레임마다 기록하면 100Hz 루프에
+    # 로깅 비용(호출당 ~0.7ms)이 얹혀 지연을 키우므로 1초 집계로 최대 1회만 남긴다.
     elapsed = sec_since_boot() - start_time
     if elapsed > 0.010:
-      cloudlog.warning(f"SLOW_FRAME elapsed={elapsed*1000:.1f}ms")
+      self.slow_frame_count += 1
+      self.slow_frame_worst = max(self.slow_frame_worst, elapsed)
+    if self.slow_frame_count > 0 and sec_since_boot() - self.slow_frame_logged_t > 1.0:
+      cloudlog.warning(f"SLOW_FRAME n={self.slow_frame_count} worst={self.slow_frame_worst*1000:.1f}ms")
+      self.slow_frame_count = 0
+      self.slow_frame_worst = 0.0
+      self.slow_frame_logged_t = sec_since_boot()
 
   def controlsd_thread(self):
     while True:
