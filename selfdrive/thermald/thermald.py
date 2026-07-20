@@ -113,9 +113,20 @@ def hw_state_thread(end_event, hw_queue):
   modem_nv = None
   modem_configured = False
 
+  params = Params()
+
   while not end_event.is_set():
     # these are expensive calls. update every 10s
     if (count % int(10. / DT_TRML)) == 0:
+      # 인터넷 도달성 스탬프. ping의 -W는 DNS 해석 시간을 제한하지 못해 무선망이
+      # 불통이면 수십 초 블로킹될 수 있으므로 deviceState를 발행하는
+      # thermald_thread가 아니라 이 스레드에서, DNS 없이 IP로만 확인한다 (ko-2).
+      try:
+        subprocess.check_output(["ping", "-c", "1", "-W", "1", "8.8.8.8"])
+        params.put("LastAthenaPingTime", str(int(sec_since_boot() * 1e9)))
+      except Exception:
+        params.delete("LastAthenaPingTime")
+
       try:
         network_type = HARDWARE.get_network_type()
         modem_temps = HARDWARE.get_modem_temperatures()
@@ -298,14 +309,6 @@ def thermald_thread(end_event, hw_queue):
       last_hw_state = hw_queue.get_nowait()
     except queue.Empty:
       pass
-
-    # these are expensive calls. update every 10s
-    if (count % int(10. / DT_TRML)) == 0:
-      try:
-        ping_test = subprocess.check_output(["ping", "-c", "1", "-W", "1", "google.com"])
-        Params().put("LastAthenaPingTime", str(int(sec_since_boot() * 1e9))) if ping_test else False
-      except Exception:
-        Params().delete("LastAthenaPingTime")
 
     msg.deviceState.freeSpacePercent = get_available_percent(default=100.0)
     msg.deviceState.memoryUsagePercent = int(round(psutil.virtual_memory().percent))
